@@ -1,7 +1,7 @@
 {
     "name": "hexonet/whmcs-ispapi-helper",
     "type": "library",
-    "description": "The ISPAPI Helper Module.",
+    "description": "The WHMCS ISPAPI Helper Module.",
     "keywords": [
         "whmcs",
         "web host automation platform",
