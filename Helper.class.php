@@ -76,8 +76,8 @@ class Helper
             $keys = array_keys($params);
             $fkeys = implode(", ", preg_replace("/:/", " ", $keys));
             $fvals = implode(", ", $keys);
-            $sql = preg_replace("/##KEYS##/", $fkeys, $sql, 1);
-            $sql = preg_replace("/##VALUES##/", $fvals, $sql, 1);
+            $sql = preg_replace("/\{\{KEYS\}\}/", $fkeys, $sql, 1);
+            $sql = preg_replace("/\{\{VALUES\}\}/", $fvals, $sql, 1);
         }
 
         // now execute SQL statement and return result in requested format
@@ -124,11 +124,13 @@ class Helper
     private function getPaymentGateways()
     {
         $gateways = array();
-        $rows = Helper::SQLCall("SELECT `gateway`, `value` FROM tblpaymentgateways WHERE setting=:setting and `order`", array(
+        $r = Helper::SQLCall("SELECT `gateway`, `value` FROM tblpaymentgateways WHERE setting=:setting and `order`", array(
             ":setting" => "name"
         ), "fetchall");
-        foreach ($rows as $row) {
-            $gateways[$row["gateway"]] = $row["value"];
+        if ($r["success"]) {
+            foreach ($r["result"] as $row) {
+                $gateways[$row["gateway"]] = $row["value"];
+            }
         }
         return $gateways;
     }
@@ -141,9 +143,11 @@ class Helper
     private function getCurrencies()
     {
         $currencies = array();
-        $rows = Helper::SQLCall("SELECT `code`, `id` FROM tblcurrencies", array(), "fetchall");
-        foreach ($rows as $row) {
-            $currencies[$row["id"]] = $row["code"];
+        $r = Helper::SQLCall("SELECT `code`, `id` FROM tblcurrencies", array(), "fetchall");
+        if ($r["success"]) {
+            foreach ($r["result"] as $row) {
+                $currencies[$row["id"]] = $row["code"];
+            }
         }
         return $currencies;
     }
@@ -155,11 +159,11 @@ class Helper
      */
     private function getClientIdByEmail($email)
     {
-        $row = Helper::SQLCall("SELECT `id` FROM tblclients WHERE email=:email LIMIT 1", array(
+        $r = Helper::SQLCall("SELECT `id` FROM tblclients WHERE email=:email LIMIT 1", array(
             ":email" => $email
         ), "fetch");
-        if ($row) {
-            return $row["id"];
+        if ($r["success"]) {
+            return $r["result"]["id"];
         }
         return false;
     }
@@ -171,11 +175,11 @@ class Helper
      */
     private function getCurrencyByClientId($clientid)
     {
-        $row = Helper::SQLCall("SELECT `currency` FROM tblclients WHERE id=:id", array(
+        $r = Helper::SQLCall("SELECT `currency` FROM tblclients WHERE id=:id", array(
             ":id" => $clientid
         ), "fetch");
-        if ($row) {
-            return $row["currency"];
+        if ($r["success"]) {
+            return $r["result"]["currency"];
         }
         return false;
     }
@@ -187,16 +191,18 @@ class Helper
      */
     private function getDomainPrices($currencyid)
     {
-        $rows = Helper::SQLCall("SELECT tdp.extension, tp.type, msetupfee year1, qsetupfee year2, ssetupfee year3, asetupfee year4, bsetupfee year5, monthly year6, quarterly year7, semiannually year8, annually year9, biennially year10 FROM tbldomainpricing tdp, tblpricing tp WHERE tp.relid=tdp.id AND tp.currency=:currency", array(
+        $r = Helper::SQLCall("SELECT tdp.extension, tp.type, msetupfee year1, qsetupfee year2, ssetupfee year3, asetupfee year4, bsetupfee year5, monthly year6, quarterly year7, semiannually year8, annually year9, biennially year10 FROM tbldomainpricing tdp, tblpricing tp WHERE tp.relid=tdp.id AND tp.currency=:currency", array(
             ":currency" => $currencyid
         ), "fetchall");
-        foreach ($rows as $key => &$row) {
-            for ($i=1; $i<=10; $i++) {
-                // TODO: think about this idea
-                // move this to WHERE clause in SQL statement: one of year1-10 != 0
-                // leave this filter work to the DB itself
-                if ($row['year'.$i] != 0) {
-                    $domainprices[$row['extension']][$row['type']][$i] = $row['year'.$i];
+        if ($r["success"]) {
+            foreach ($r["result"] as $key => &$row) {
+                for ($i=1; $i<=10; $i++) {
+                    // TODO: think about this idea
+                    // move this to WHERE clause in SQL statement: one of year1-10 != 0
+                    // leave this filter work to the DB itself
+                    if ($row['year'.$i] != 0) {
+                        $domainprices[$row['extension']][$row['type']][$i] = $row['year'.$i];
+                    }
                 }
             }
         }
@@ -209,7 +215,7 @@ class Helper
      * @param array $contact StatusContact PROPERTY data from API
      * @param string $currency currency
      *
-     * @return string client id
+     * @return string|bool client id or false in error case
      */
     private static function createClient($contact, $currency, $password)
     {
@@ -233,13 +239,11 @@ class Helper
             ":phonenumber" => preg_replace('/^\+/', '', $info["phonenumber"]) || "NONE",
             ":postcode" => preg_replace('/[^0-9a-zA-Z ]/', '', $info["postcode"] || "N/A")
         );
-        $info = array_map(function ($v) {
-            return (is_null($v)) ? "" : $v;
-        }, $info);
-        $keys = implode(", ", preg_replace("/:/", " ", array_keys($info)));
-        $vals = implode(", ", array_keys($info));
-        Helper::SQLCall("INSERT INTO tblclients (datecreated, $keys) VALUES (now(), $vals)", $info, "execute");
-        return Helper::getClientIdByEmail($contact["EMAIL"][0]);
+        $r = Helper::SQLCall("INSERT INTO tblclients (datecreated, {{KEYS}}) VALUES (now(), {{VALUES}})", $info, "execute");
+        if ($r["success"]) {
+            return Helper::getClientIdByEmail($contact["EMAIL"][0]);
+        }
+        return false;
     }
 
     /**
@@ -274,13 +278,8 @@ class Helper
             ":dnsmanagement" => "on",
             ":emailforwarding" => "on"
         );
-        $info = array_map(function ($v) {
-            return (is_null($v)) ? "" : $v;
-        }, $info);
-        $keys = implode(", ", preg_replace("/:/", " ", array_keys($info)));
-        $vals = implode(", ", array_keys($info));
-        $result = Helper::SQLCall("INSERT INTO tbldomains ($keys) VALUES ($vals)", $info, "execute");
-        return $result ? true : false;
+        $r = Helper::SQLCall("INSERT INTO tbldomains ({{KEYS}}) VALUES ({{VALUES}})", $info, "execute");
+        return $r["success"];
     }
 
     /**
@@ -304,10 +303,10 @@ class Helper
             );
         }
         $tld = strtolower($m[1]);
-        $row = Helper::SQLCall("SELECT `id` FROM tbldomains WHERE domain=:domain AND status IN ('Pending', 'Pending Transfer', 'Active') AND registrar='ispapi' LIMIT 1", array(
+        $r = Helper::SQLCall("SELECT `id` FROM tbldomains WHERE domain=:domain AND status IN ('Pending', 'Pending Transfer', 'Active') AND registrar='ispapi' LIMIT 1", array(
             ":domain" => $domain
         ), "fetch");
-        if ($row) {
+        if ($r["success"] && $r["result"]) {
             return array(
                 success => false,
                 msgid => 'alreadyexistingerror'
