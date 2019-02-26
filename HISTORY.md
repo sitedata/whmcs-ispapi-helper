@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.1...v1.0.2) (2019-02-26)
+
+
+### Bug Fixes
+
+* **Helper:** Review usage of SQLCall method ([95f3981](https://github.com/hexonet/whmcs-ispapi-helper/commit/95f3981))
+
 ## [1.0.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.0...v1.0.1) (2019-02-26)
 
 
