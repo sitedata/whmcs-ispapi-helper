@@ -121,7 +121,7 @@ class Helper
      *
      * @return array list of payment gateways
      */
-    private function getPaymentGateways()
+    public static function getPaymentGateways()
     {
         $gateways = array();
         $r = Helper::SQLCall("SELECT `gateway`, `value` FROM tblpaymentgateways WHERE setting=:setting and `order`", array(
@@ -140,7 +140,7 @@ class Helper
      *
      * @return array list of currencies
      */
-    private function getCurrencies()
+    public static function getCurrencies()
     {
         $currencies = array();
         $r = Helper::SQLCall("SELECT `code`, `id` FROM tblcurrencies", array(), "fetchall");
@@ -157,7 +157,7 @@ class Helper
      *
      * @return string|boolean the client id or false if not found
      */
-    private function getClientIdByEmail($email)
+    public static function getClientIdByEmail($email)
     {
         $r = Helper::SQLCall("SELECT `id` FROM tblclients WHERE email=:email LIMIT 1", array(
             ":email" => $email
@@ -173,7 +173,7 @@ class Helper
      *
      * @return string|false client's currency or false if not found
      */
-    private function getCurrencyByClientId($clientid)
+    public static function getCurrencyByClientId($clientid)
     {
         $r = Helper::SQLCall("SELECT `currency` FROM tblclients WHERE id=:id", array(
             ":id" => $clientid
@@ -189,7 +189,7 @@ class Helper
      *
      * @return array list of domain prices
      */
-    private function getDomainPrices($currencyid)
+    public static function getDomainPrices($currencyid)
     {
         $r = Helper::SQLCall("SELECT tdp.extension, tp.type, msetupfee year1, qsetupfee year2, ssetupfee year3, asetupfee year4, bsetupfee year5, monthly year6, quarterly year7, semiannually year8, annually year9, biennially year10 FROM tbldomainpricing tdp, tblpricing tp WHERE tp.relid=tdp.id AND tp.currency=:currency", array(
             ":currency" => $currencyid
@@ -217,7 +217,7 @@ class Helper
      *
      * @return string|bool client id or false in error case
      */
-    private static function createClient($contact, $currency, $password)
+    public static function createClient($contact, $currency, $password)
     {
         $info = array(
             ":firstname" => $contact["FIRSTNAME"][0],
@@ -257,7 +257,7 @@ class Helper
      *
      * @return bool domain creation result
      */
-    private static function createDomain($domain, $apidata, $gateway, $client, $recurringamount)
+    public static function createDomain($domain, $apidata, $gateway, $client, $recurringamount)
     {
         $info = array(
             ":userid" => $client,
@@ -294,7 +294,7 @@ class Helper
      *
      * @return array where property "success" (boolean) identifies the import result and property "msgid" the translation/language key
      */
-    private static function importDomain($domain, $registrar, $gateway, $currency, $password, &$contacts)
+    public static function importDomain($domain, $registrar, $gateway, $currency, $password, &$contacts)
     {
         if (!preg_match('/(\..*)$/i', $domain, $m)) {
             return array(
@@ -378,7 +378,7 @@ class Helper
     }
 
     private static $stringCharset = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    private static function generateRandomString($length = 10)
+    public static function generateRandomString($length = 10)
     {
         $characters = Helper::stringCharset;
         $charactersLength = strlen($characters);
