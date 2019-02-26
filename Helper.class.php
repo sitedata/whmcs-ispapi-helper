@@ -377,7 +377,7 @@ class Helper
         );
     }
 
-    private static $stringCharset = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    public static $stringCharset = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public static function generateRandomString($length = 10)
     {
         $characters = Helper::stringCharset;
