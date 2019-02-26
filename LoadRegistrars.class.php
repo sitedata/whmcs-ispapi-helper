@@ -76,7 +76,7 @@ class LoadRegistrars
     {
         $list = array();
         $r = Helper::SQLCall("SELECT extension, autoreg FROM tbldomainpricing GROUP BY autoreg", array(), "fetchall");
-        if ($r["success"]){
+        if ($r["success"]) {
             foreach ($r["result"] as $registrar) {
                 array_push($list, $registrar["autoreg"]);
             }
