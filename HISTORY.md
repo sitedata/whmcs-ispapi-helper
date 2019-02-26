@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.0...v1.0.1) (2019-02-26)
+
+
+### Bug Fixes
+
+* **LoadRegistrars:** fix use of Helper::SQLCall method ([81f132a](https://github.com/hexonet/whmcs-ispapi-helper/commit/81f132a))
+* **PSR2:** reformatted LoadRegistrars.class.php ([2f20deb](https://github.com/hexonet/whmcs-ispapi-helper/commit/2f20deb))
+
 # 1.0.0 (2019-02-26)
 
 
