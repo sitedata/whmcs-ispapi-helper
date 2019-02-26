@@ -75,9 +75,11 @@ class LoadRegistrars
     private function getAllConfiguredRegistrars()
     {
         $list = array();
-        $registrars_array = Helper::SQLCall("SELECT extension, autoreg FROM tbldomainpricing GROUP BY autoreg", array(), "fetchall");
-        foreach ($registrars_array as $registrar) {
-            array_push($list, $registrar["autoreg"]);
+        $r = Helper::SQLCall("SELECT extension, autoreg FROM tbldomainpricing GROUP BY autoreg", array(), "fetchall");
+        if ($r["success"]){
+            foreach ($r["result"] as $registrar) {
+                array_push($list, $registrar["autoreg"]);
+            }
         }
         return $list;
     }
