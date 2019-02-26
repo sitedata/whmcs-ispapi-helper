@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.2...v1.0.3) (2019-02-26)
+
+
+### Bug Fixes
+
+* **Helper:** Review method visibility ([eccd671](https://github.com/hexonet/whmcs-ispapi-helper/commit/eccd671))
+
 ## [1.0.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.1...v1.0.2) (2019-02-26)
 
 
