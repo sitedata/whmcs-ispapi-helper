@@ -380,7 +380,7 @@ class Helper
     public static $stringCharset = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     public static function generateRandomString($length = 10)
     {
-        $characters = Helper::stringCharset;
+        $characters = Helper::$stringCharset;
         $charactersLength = strlen($characters);
         $randomString = '';
         for ($i = 0; $i < $length; $i++) {
