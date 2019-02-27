@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.4...v1.0.5) (2019-02-27)
+
+
+### Bug Fixes
+
+* **Helper:** accessing stringCharset in correct way ([5d7d95f](https://github.com/hexonet/whmcs-ispapi-helper/commit/5d7d95f))
+
 ## [1.0.4](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.3...v1.0.4) (2019-02-26)
 
 
