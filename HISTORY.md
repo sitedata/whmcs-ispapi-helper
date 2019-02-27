@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.3...v1.0.4) (2019-02-26)
+
+
+### Bug Fixes
+
+* **Helper:** review stringCharset visibility ([feda0ab](https://github.com/hexonet/whmcs-ispapi-helper/commit/feda0ab))
+
 ## [1.0.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.2...v1.0.3) (2019-02-26)
 
 
