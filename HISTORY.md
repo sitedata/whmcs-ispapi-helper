@@ -1,3 +1,10 @@
+## [1.0.6](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.5...v1.0.6) (2019-02-28)
+
+
+### Bug Fixes
+
+* **namespace:** use tmp. namespace ([c2cda37](https://github.com/hexonet/whmcs-ispapi-helper/commit/c2cda37))
+
 ## [1.0.5](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.4...v1.0.5) (2019-02-27)
 
 
