@@ -1,7 +1,7 @@
 <?php
-namespace ISPAPI;
+namespace ISPAPINEW;
 
-use ISPAPI\Helper;
+use ISPAPINEW\Helper;
 
 /**
  * PHP Class which loads the required registrars

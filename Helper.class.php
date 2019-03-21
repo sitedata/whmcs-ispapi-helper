@@ -1,5 +1,5 @@
 <?php
-namespace ISPAPI;
+namespace ISPAPINEW;
 
 use WHMCS\Database\Capsule;
 use PDO;
