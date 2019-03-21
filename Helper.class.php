@@ -17,7 +17,7 @@ if (defined("ROOTDIR")) {
  */
 class Helper
 {
-    public static $currencies;
+    public static $currencies = null;
 
     /*
      * Helper to send API command to the given registrar. Returns the response
@@ -146,7 +146,7 @@ class Helper
     {
         if (!self::$currencies) {
             self::$currencies = array();
-            $result = localAPI('GetCurrencies', array());
+            $results = localAPI('GetCurrencies', array());
             if ($results["result"]=="success") {
                 foreach ($results["currencies"]["currency"] as $idx => $d) {
                     self::$currencies[$d["code"]] = $d;
