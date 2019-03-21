@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.6...v1.1.0) (2019-03-21)
+
+
+### Features
+
+* **Helper:** use localAPI in getCurrencies and added getCurrencyId ([6064530](https://github.com/hexonet/whmcs-ispapi-helper/commit/6064530))
+
 ## [1.0.6](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.5...v1.0.6) (2019-02-28)
 
 
