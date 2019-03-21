@@ -144,7 +144,7 @@ class Helper
      */
     public static function getCurrencies()
     {
-        if (!self::$currencies){
+        if (!self::$currencies) {
             self::$currencies = array();
             $result = localAPI('GetCurrencies', array());
             if ($results["result"]=="success") {
