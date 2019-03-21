@@ -17,6 +17,8 @@ if (defined("ROOTDIR")) {
  */
 class Helper
 {
+    public static $currencies;
+
     /*
      * Helper to send API command to the given registrar. Returns the response
      *
@@ -135,22 +137,36 @@ class Helper
         return $gateways;
     }
 
+
     /**
-     * Return list of available Currencies
-     *
-     * @return array list of currencies
+     * load configured currencies
+     * @return array assoc array, list of currencies where currency code is array key
      */
     public static function getCurrencies()
     {
-        $currencies = array();
-        $r = Helper::SQLCall("SELECT `code`, `id` FROM tblcurrencies", array(), "fetchall");
-        if ($r["success"]) {
-            foreach ($r["result"] as $row) {
-                $currencies[$row["id"]] = $row["code"];
+        if (!self::$currencies){
+            self::$currencies = array();
+            $result = localAPI('GetCurrencies', array());
+            if ($results["result"]=="success") {
+                foreach ($results["currencies"]["currency"] as $idx => $d) {
+                    self::$currencies[$d["code"]] = $d;
+                }
             }
         }
-        return $currencies;
+        return self::$currencies;
     }
+
+    /**
+     * get currency id of a currency identified by given currency code
+     * @param string $currency currency code
+     * @return null|int currency id or null if currency is not configured
+     */
+    private function getCurrencyId($currency)
+    {
+        $cs = self::getCurrencies();
+        return (!isset($cs[$currency]) ? null : $cs[$currency]["id"]);
+    }
+
 
     /**
      * Get client id by given email address
