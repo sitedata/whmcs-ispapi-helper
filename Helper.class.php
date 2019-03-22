@@ -350,6 +350,12 @@ class Helper
         if ((!$contact["EMAIL"][0]) || (preg_match('/null$/i', $contact["EMAIL"][0]))) {
             $contact["EMAIL"][0] = "info@".$domain;
         }
+        if (empty($contact["PHONE"][0])) {
+            return array(
+                success => false,
+                msgid => "registrantcreateerrornophone"
+            );
+        }
         $client = Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         if (!$client) {
             $client = Helper::addClient($contact, $currency, $password);
