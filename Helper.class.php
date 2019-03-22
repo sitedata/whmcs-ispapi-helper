@@ -184,16 +184,6 @@ class Helper
     }
 
     /**
-     * get domain prices by currency id
-     *
-     * @return array list of domain prices
-     */
-    public static function getDomainPrices($currencyid)
-    {
-        exit("this method is deprecated, rewrite in favor of localAPI 'GetTLDPricing'");
-    }
-
-    /**
      * Create a new client by given API contact data and return the client id.
      *
      * @param array $contact StatusContact PROPERTY data from API
@@ -219,9 +209,6 @@ class Helper
             "currency" => $currencyid,
             "language" => "english"
         );
-        if (empty($contact["PHONE"])) {
-            // this won't work TODO
-        }
         if (!empty($contact["ORGANIZATION"][0])) {
             $request["companyname"] = $contact["ORGANIZATION"][0];
         }
