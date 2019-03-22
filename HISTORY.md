@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.2.0...v1.3.0) (2019-03-22)
+
+
+### Features
+
+* **Helper:** review methods in direction of localAPI ([d85aaa4](https://github.com/hexonet/whmcs-ispapi-helper/commit/d85aaa4))
+
 # [1.2.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.1.1...v1.2.0) (2019-03-22)
 
 
