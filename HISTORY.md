@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.3.2...v1.3.3) (2019-03-22)
+
+
+### Bug Fixes
+
+* **Helper:** add check for empty phone number ([ff3b767](https://github.com/hexonet/whmcs-ispapi-helper/commit/ff3b767))
+
 ## [1.3.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.3.1...v1.3.2) (2019-03-22)
 
 
