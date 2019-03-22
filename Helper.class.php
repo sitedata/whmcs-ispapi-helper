@@ -18,6 +18,7 @@ if (defined("ROOTDIR")) {
 class Helper
 {
     public static $currencies = null;
+    public static $paymentmethods = null;
 
     /*
      * Helper to send API command to the given registrar. Returns the response
@@ -123,18 +124,18 @@ class Helper
      *
      * @return array list of payment gateways
      */
-    public static function getPaymentGateways()
+    public static function getPaymentMethods()
     {
-        $gateways = array();
-        $r = Helper::SQLCall("SELECT `gateway`, `value` FROM tblpaymentgateways WHERE setting=:setting and `order`", array(
-            ":setting" => "name"
-        ), "fetchall");
-        if ($r["success"]) {
-            foreach ($r["result"] as $row) {
-                $gateways[$row["gateway"]] = $row["value"];
+        if (!self::$paymentmethods) {
+            self::$paymentmethods = array();
+            $r = localAPI("GetPaymentMethods", array());
+            if ($r["result"]) {
+                foreach ($r["paymentmethods"]["paymentmethod"] as $pm) {
+                    self::$paymentmethods[$pm["module"]] = $pm["displayname"];
+                }
             }
         }
-        return $gateways;
+        return self::$paymentmethods;
     }
 
 
