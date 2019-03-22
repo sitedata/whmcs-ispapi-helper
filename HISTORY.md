@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.1.1...v1.2.0) (2019-03-22)
+
+
+### Features
+
+* **Helper:** replace getPaymentGateways with getPaymentMethods ([9127a7d](https://github.com/hexonet/whmcs-ispapi-helper/commit/9127a7d))
+
 ## [1.1.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.1.0...v1.1.1) (2019-03-21)
 
 
