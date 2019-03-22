@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.1.0...v1.1.1) (2019-03-21)
+
+
+### Bug Fixes
+
+* **Helper:** fix used variable name in getCurrencies ([5da3a5c](https://github.com/hexonet/whmcs-ispapi-helper/commit/5da3a5c))
+
 # [1.1.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.0.6...v1.1.0) (2019-03-21)
 
 
