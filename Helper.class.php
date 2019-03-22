@@ -219,7 +219,7 @@ class Helper
             "currency" => $currencyid,
             "language" => "english"
         );
-        if (empty($contact["PHONE"])){
+        if (empty($contact["PHONE"])) {
             // this won't work TODO
         }
         if (!empty($contact["ORGANIZATION"][0])) {
