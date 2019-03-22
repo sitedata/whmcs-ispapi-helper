@@ -219,6 +219,9 @@ class Helper
             "currency" => $currencyid,
             "language" => "english"
         );
+        if (empty($contact["PHONE"])){
+            // this won't work TODO
+        }
         if (!empty($contact["ORGANIZATION"][0])) {
             $request["companyname"] = $contact["ORGANIZATION"][0];
         }
@@ -255,15 +258,15 @@ class Helper
      * @param string $domain domain name
      * @param array $apidata StatusDomain PROPERTY data from API
      * @param string $gateway payment gateway
-     * @param string $client client id
+     * @param string $clientid client id
      * @param string $recurringamount recurring amount
      *
      * @return bool domain creation result
      */
-    public static function createDomain($domain, $apidata, $gateway, $client, $recurringamount)
+    public static function createDomain($domain, $apidata, $gateway, $clientid, $recurringamount)
     {
         $info = array(
-            ":userid" => $client,
+            ":userid" => $clientid,
             ":orderid" => 0,
             ":type" => "Register",
             ":registrationdate" => $apidata["CREATEDDATE"][0],
@@ -372,7 +375,7 @@ class Helper
                 msgid => "tldrenewalpriceerror"
             );
         }
-        $result = Helper::createDomain($domain, $r["PROPERTY"], $gateway, $clientid, $domainprices["pricing"][$tld]['renew']['1']);
+        $result = Helper::createDomain($domain, $r["PROPERTY"], $gateway, $client["id"], $domainprices["pricing"][$tld]['renew']['1']);
         if (!$result) {
             return array(
                 success => false,
