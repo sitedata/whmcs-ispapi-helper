@@ -15,3 +15,6 @@ report
 
 # Generated Archives
 pkg
+
+# local test files
+test.php

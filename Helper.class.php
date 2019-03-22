@@ -13,7 +13,7 @@ if (defined("ROOTDIR")) {
 /**
  * PHP Helper Class
  *
- * @copyright  2018 HEXONET GmbH
+ * @copyright  2018 HEXONET GmbH, MIT License
  */
 class Helper
 {
@@ -168,35 +168,17 @@ class Helper
         return (!isset($cs[$currency]) ? null : $cs[$currency]["id"]);
     }
 
-
     /**
-     * Get client id by given email address
+     * Get client details by given email address
      *
-     * @return string|boolean the client id or false if not found
+     * @return array|boolean the client id or false if not found
      */
-    public static function getClientIdByEmail($email)
+    public static function getClientsDetailsByEmail($email)
     {
-        $r = Helper::SQLCall("SELECT `id` FROM tblclients WHERE email=:email LIMIT 1", array(
-            ":email" => $email
-        ), "fetch");
-        if ($r["success"]) {
-            return $r["result"]["id"];
-        }
-        return false;
-    }
-
-    /**
-     * Get currency by given client id
-     *
-     * @return string|false client's currency or false if not found
-     */
-    public static function getCurrencyByClientId($clientid)
-    {
-        $r = Helper::SQLCall("SELECT `currency` FROM tblclients WHERE id=:id", array(
-            ":id" => $clientid
-        ), "fetch");
-        if ($r["success"]) {
-            return $r["result"]["currency"];
+        $r = localAPI('GetClientsDetails', array('email' => $email));
+        if ($r["result"]=="success") {
+            $details = array();
+            return $r["client"];
         }
         return false;
     }
@@ -208,57 +190,61 @@ class Helper
      */
     public static function getDomainPrices($currencyid)
     {
-        $r = Helper::SQLCall("SELECT tdp.extension, tp.type, msetupfee year1, qsetupfee year2, ssetupfee year3, asetupfee year4, bsetupfee year5, monthly year6, quarterly year7, semiannually year8, annually year9, biennially year10 FROM tbldomainpricing tdp, tblpricing tp WHERE tp.relid=tdp.id AND tp.currency=:currency", array(
-            ":currency" => $currencyid
-        ), "fetchall");
-        if ($r["success"]) {
-            foreach ($r["result"] as $key => &$row) {
-                for ($i=1; $i<=10; $i++) {
-                    // TODO: think about this idea
-                    // move this to WHERE clause in SQL statement: one of year1-10 != 0
-                    // leave this filter work to the DB itself
-                    if ($row['year'.$i] != 0) {
-                        $domainprices[$row['extension']][$row['type']][$i] = $row['year'.$i];
-                    }
-                }
-            }
-        }
-        return $domainprices;
+        exit("this method is deprecated, rewrite in favor of localAPI 'GetTLDPricing'");
     }
 
     /**
      * Create a new client by given API contact data and return the client id.
      *
      * @param array $contact StatusContact PROPERTY data from API
-     * @param string $currency currency
+     * @param string $currency currency id
      *
      * @return string|bool client id or false in error case
      */
-    public static function createClient($contact, $currency, $password)
+    public static function addClient($contact, $currencyid, $password)
     {
-        $info = array(
-            ":firstname" => $contact["FIRSTNAME"][0],
-            ":lastname" => $contact["LASTNAME"][0],
-            ":companyname" => $contact["ORGANIZATION"][0],
-            ":email" => $contact["EMAIL"][0],
-            ":address1" => $contact["STREET"][0],
-            ":address2" => $contact["STREET"][1],
-            ":city" => $contact["CITY"][0],
-            ":state" => $contact["STATE"][0],
-            ":postcode" => $contact["ZIP"][0],
-            ":country" => strtoupper($contact["COUNTRY"][0]),
-            ":phonenumber" => $contact["PHONE"][0],
-            ":password" => $password,
-            ":currency" => $currency,
-            ":language" => "English",
-            ":credit" => "0.00",
-            ":lastlogin" => "0000-00-00 00:00:00",
-            ":phonenumber" => preg_replace('/^\+/', '', $info["phonenumber"]) || "NONE",
-            ":postcode" => preg_replace('/[^0-9a-zA-Z ]/', '', $info["postcode"] || "N/A")
+        $phone = preg_replace('/^\+/', '', $contact["PHONE"][0]);
+        $zip = preg_replace('/[^0-9a-zA-Z ]/', '', $contact["ZIP"][0]);
+        $request = array(
+            "firstname" => $contact["FIRSTNAME"][0],
+            "lastname" => $contact["LASTNAME"][0],
+            "email" => $contact["EMAIL"][0],
+            "address1" => $contact["STREET"][0],
+            "city" => $contact["CITY"][0],
+            "state" => $contact["STATE"][0],
+            "postcode" => $zip ? $zip : "N/A",
+            "country" => strtoupper($contact["COUNTRY"][0]),
+            "phonenumber" => $phone ? $phone : "NONE",
+            "password2" => $password,
+            "currency" => $currencyid,
+            "language" => "english"
         );
-        $r = Helper::SQLCall("INSERT INTO tblclients (datecreated, {{KEYS}}) VALUES (now(), {{VALUES}})", $info, "execute");
-        if ($r["success"]) {
-            return Helper::getClientIdByEmail($contact["EMAIL"][0]);
+        if (!empty($contact["ORGANIZATION"][0])) {
+            $request["companyname"] = $contact["ORGANIZATION"][0];
+        }
+        if (!empty($contact["STREET"][1])) {
+            $request["address2"] = $contact["STREET"][1];
+        }
+        $result = localAPI('AddClient', $request);
+        if ($r["result"] == "success") {
+            return Helper::getClientsDetails($contact["EMAIL"][0]);
+        }
+        return false;
+    }
+
+    /**
+     * Check if a domain already exists in WHMCS database
+     * @param string $domain domain name
+     * @return boolean check result
+     */
+    public static function checkDomainExists($domain)
+    {
+        $r = localAPI('GetClientsDomains', array(
+            'domain' => $domain,
+            'limitnum' => 1
+        ));
+        if ($r["result"] == "success") {
+            return $r["totalresults"] > 0;
         }
         return false;
     }
@@ -313,17 +299,14 @@ class Helper
      */
     public static function importDomain($domain, $registrar, $gateway, $currency, $password, &$contacts)
     {
-        if (!preg_match('/(\..*)$/i', $domain, $m)) {
+        if (!preg_match('/\.(.*)$/i', $domain, $m)) {
             return array(
                 success => false,
                 msgid => 'domainnameinvaliderror'
             );
         }
         $tld = strtolower($m[1]);
-        $r = Helper::SQLCall("SELECT `id` FROM tbldomains WHERE domain=:domain AND status IN ('Pending', 'Pending Transfer', 'Active') AND registrar='ispapi' LIMIT 1", array(
-            ":domain" => $domain
-        ), "fetch");
-        if ($r["success"] && $r["result"]) {
+        if (Helper::checkDomainExists($domain)) {
             return array(
                 success => false,
                 msgid => 'alreadyexistingerror'
@@ -364,24 +347,32 @@ class Helper
         if ((!$contact["EMAIL"][0]) || (preg_match('/null$/i', $contact["EMAIL"][0]))) {
             $contact["EMAIL"][0] = "info@".$domain;
         }
-        $clientid = Helper::getClientIdByEmail($contact["EMAIL"][0]);
-        if (!$clientid) {
-            $clientid = Helper::createClient($contact, $currency, $password);
-            if (!$clientid) {
+        $client = Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
+        if (!$client) {
+            $client = Helper::addClient($contact, $currency, $password);
+            if (!$client) {
                 return array(
                     success => false,
                     msgid => "registrantcreateerror"
                 );
             }
         }
-        $domainprices = Helper::getDomainPrices(Helper::getCurrencyByClientId($clientid));
-        if (!isset($domainprices[$tld]['domainrenew'][1])) {
+        $domainprices = localAPI('GetTLDPricing', array(
+            'currencyid' => $client["currency"]
+        ));
+        if (!$domainprices["result"] == "success") {
             return array(
                 success => false,
                 msgid => "tldrenewalpriceerror"
             );
         }
-        $result = Helper::createDomain($domain, $r["PROPERTY"], $gateway, $clientid, $domainprices[$tld]['domainrenew'][1]);
+        if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
+            return array(
+                success => false,
+                msgid => "tldrenewalpriceerror"
+            );
+        }
+        $result = Helper::createDomain($domain, $r["PROPERTY"], $gateway, $clientid, $domainprices["pricing"][$tld]['renew']['1']);
         if (!$result) {
             return array(
                 success => false,
