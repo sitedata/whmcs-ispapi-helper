@@ -203,7 +203,7 @@ class Helper
      */
     public static function addClient($contact, $currencyid, $password)
     {
-        $phone = preg_replace('/^\+/', '', $contact["PHONE"][0]);
+        $phone = preg_replace('/[^0-9 ]/', '', $contact["PHONE"][0]);//only numbers and spaces allowed
         $zip = preg_replace('/[^0-9a-zA-Z ]/', '', $contact["ZIP"][0]);
         $request = array(
             "firstname" => $contact["FIRSTNAME"][0],
@@ -214,7 +214,7 @@ class Helper
             "state" => $contact["STATE"][0],
             "postcode" => $zip ? $zip : "N/A",
             "country" => strtoupper($contact["COUNTRY"][0]),
-            "phonenumber" => $phone ? $phone : "NONE",
+            "phonenumber" => $phone,
             "password2" => $password,
             "currency" => $currencyid,
             "language" => "english"
