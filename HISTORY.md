@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.3.0...v1.3.1) (2019-03-22)
+
+
+### Bug Fixes
+
+* **Helper:** addClient: fix use of phonenumber input charset ([f4978e4](https://github.com/hexonet/whmcs-ispapi-helper/commit/f4978e4))
+
 # [1.3.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.2.0...v1.3.0) (2019-03-22)
 
 
