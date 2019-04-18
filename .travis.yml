@@ -1,6 +1,5 @@
 language: php
-sudo: false
-dist: trusty
+dist: xenial
 notifications:
   email:
     recipients:
@@ -9,22 +8,31 @@ notifications:
     - tseelamkurthi@hexonet.net
     on_success: never
     on_failure: always
-php:
-- 5.6.0
-- 5.6.38
-- 7.0.32
-- 7.1.22
-- 7.2.10
 cache:
   directories:
   - "~/.npm"
   - node_modules
+php:
+- 5.6.38
+- 7.0.32
+- 7.1.26
+- 7.2.15
+- 7.3.2
+# Trigger a push build on master and dependabot branches + PRs build on every branches
+# Avoid double build on PRs (See https://github.com/travis-ci/travis-ci/issues/1147)
+branches:
+  only:
+    - master
+    - /^dependabot.*$/
 install:
-- composer install
+- travis_retry composer install
 script:
 - composer run-script codeCheck
-after_success:
-- if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then
-  git config --replace-all remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
-  && git fetch --tags && nvm install lts/* && nvm use lts/* && npm prune && npm i
-  && npx travis-deploy-once "npx semantic-release" ; fi
+jobs:
+  include:
+    - stage: release
+      node_js: lts/*
+      script:
+        - npm prune
+        - travis_retry npm i
+        - npx semantic-release
