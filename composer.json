@@ -48,7 +48,7 @@
         "php": ">=5.6.0"
     },
     "scripts": {
-        "codeCheck": "./vendor/bin/phpcs --standard=PSR2 -q -n --colors *.php",
-        "codeFix": "./vendor/bin/phpcbf --standard=PSR2 -q *.php"
+        "codeCheck": "phpcs --standard=PSR2 --ignore=\"*/vendor/*\" -q -n --colors *.php",
+        "codeFix": "phpcbf --standard=PSR2 --ignore=\"*/vendor/*\" -q *.php"
     }
 }
