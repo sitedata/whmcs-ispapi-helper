@@ -2,9 +2,8 @@
 namespace ISPAPINEW;
 
 use WHMCS\Database\Capsule;
+use WHMCS_ClientArea;
 use PDO;
-
-//use WHMCS_ClientArea;//no idea why we should keep it
 
 if (defined("ROOTDIR")) {
     require_once(implode(DIRECTORY_SEPARATOR, array(ROOTDIR,"includes","registrarfunctions.php")));
@@ -167,6 +166,31 @@ class Helper
         $cs = self::getCurrencies();
         return (!isset($cs[$currency]) ? null : $cs[$currency]["id"]);
     }
+
+    /*
+     * Returns the customer selected currency id.
+     *
+     * @return string Currency ID of the user
+     */
+    public static function getCustomerCurrency()
+    {
+        //if customer logged in, set the configured currency.
+        $ca = new WHMCS_ClientArea();
+        if ($ca->isLoggedIn()) {
+            $user = self::SQLCall("SELECT currency FROM tblclients WHERE id=:id", array(":id" => $ca->getUserID()));
+            return $user["currency"];
+        }
+        
+        $currency = isset($_REQUEST["currency"]) ? $_REQUEST["currency"] : $_SESSION["currency"];
+        //no currency neither provided as request parameter nor by session (not logged in)
+        //TODO: does it make sense to lookup session as we checked it by prev. step?
+        if (empty($currency)) {
+            $default = self::SQLCall("SELECT id FROM tblcurrencies WHERE `default`=1");
+            return $default["id"];
+        }
+        return $currency;
+    }
+
 
     /**
      * Get client details by given email address
