@@ -49,19 +49,19 @@ class Helper
 
     /*
      * Helper to send SQL call to the Database with Capsule
-     * Set $debug = true in the function to have DEBUG output in the JSON string
+     *
      *
      * @param string $sql The SQL query
      * @param array $params The parameters of the query DEFAULT = NULL
      * @param $fetchmode The fetching mode of the query (fetch, fetchall, execute) - DEFAULT = fetch
+     * @param $debug Set to true to have the SQL Query in addition returned in case of an error
 
      * @return array response where boolean property "success" tells you if the query was successful or not
      * and property "result" only exists in case of success and covers the expected response format.
      * In case of execute failed (or thrown error), check property "errormsg" for the error details.
      */
-    public static function SQLCall($sql, $params = null, $fetchmode = "fetch")
+    public static function SQLCall($sql, $params = null, $fetchmode = "fetch", $debug = false)
     {
-        $debug = false;
         $result = array(
             "success" => false
         );
@@ -104,7 +104,7 @@ class Helper
                 $result["errormsg"] = implode(", ", $stmt->errorInfo());
             }
             $pdo->commit();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             logModuleCall(
                 'provisioningmodule',
                 __FUNCTION__,
@@ -114,6 +114,9 @@ class Helper
             );
             $pdo->rollBack();
             $result["errormsg"] = $e->getMessage();
+            if ($debug) {
+                $result["sqlquery"] = $sql;
+            }
         }
         return $result;
     }
