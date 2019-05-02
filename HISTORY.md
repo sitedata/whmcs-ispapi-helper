@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.4.0...v1.4.1) (2019-05-02)
+
+
+### Bug Fixes
+
+* **LoadRegistrars:** add missing lines from domainchecker module ([a924f18](https://github.com/hexonet/whmcs-ispapi-helper/commit/a924f18))
+
 # [1.4.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.3.3...v1.4.0) (2019-05-02)
 
 
