@@ -4,7 +4,7 @@ namespace ISPAPINEW;
 use ISPAPINEW\Helper;
 
 /**
- * PHP Class which loads the required registrars
+ * PHP Class which loads the required registrars for the HP Domainchecker module.
  *
  * @copyright  2018 HEXONET GmbH
  */
@@ -40,6 +40,11 @@ class LoadRegistrars
         foreach ($this->getAllConfiguredRegistrars() as $registrar) {
             $this->loadSingleISPAPIRegistrar($registrar);
         }
+        //if no registrar configured in the pricelist, then try to add hexonet and ispapi
+        if (empty($this->registrars)) {
+            $this->loadSingleISPAPIRegistrar("hexonet");
+            $this->loadSingleISPAPIRegistrar("ispapi");
+        }
     }
 
     /*
@@ -58,7 +63,6 @@ class LoadRegistrars
                 if (version_compare($version, self::REGISTRAR_MIN_VERSION) >= 0) {
                     //check authentication
                     $checkAuthentication = Helper::APICall($registrar, array("COMMAND" => "CheckAuthentication"));
-                    // echo "<pre>"; print_r($checkAuthentication); echo "</pre>";
                     if ($checkAuthentication["CODE"] == "200") {
                         array_push($this->registrars, $registrar);
                     }
@@ -75,11 +79,9 @@ class LoadRegistrars
     private function getAllConfiguredRegistrars()
     {
         $list = array();
-        $r = Helper::SQLCall("SELECT extension, autoreg FROM tbldomainpricing GROUP BY autoreg", array(), "fetchall");
-        if ($r["success"]) {
-            foreach ($r["result"] as $registrar) {
-                array_push($list, $registrar["autoreg"]);
-            }
+        $registrars_array = Helper::SQLCall("SELECT extension, autoreg FROM tbldomainpricing GROUP BY autoreg", array(), "fetchall");
+        foreach ($registrars_array as $registrar) {
+            array_push($list, $registrar["autoreg"]);
         }
         return $list;
     }
