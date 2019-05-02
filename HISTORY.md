@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.4.1...v2.0.0) (2019-05-02)
+
+
+### Code Refactoring
+
+* **namespace:** set it to ISPAPI to minimize code refactoring ([e853fda](https://github.com/hexonet/whmcs-ispapi-helper/commit/e853fda))
+
+
+### BREAKING CHANGES
+
+* **namespace:** Note that the namespace changed to ISPAPI, ISPAPINEW is no longer valid.
+
 ## [1.4.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.4.0...v1.4.1) (2019-05-02)
 
 
