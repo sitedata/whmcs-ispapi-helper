@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.0.0...v2.1.0) (2019-05-02)
+
+
+### Features
+
+* **Helper:** move $debug to function parameters for inheritance ([818cc51](https://github.com/hexonet/whmcs-ispapi-helper/commit/818cc51))
+
 # [2.0.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.4.1...v2.0.0) (2019-05-02)
 
 
