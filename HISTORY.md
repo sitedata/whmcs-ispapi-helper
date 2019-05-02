@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.3.3...v1.4.0) (2019-05-02)
+
+
+### Features
+
+* **Helper:** add getCustomerCurrency used by domainchecker ([6ac2501](https://github.com/hexonet/whmcs-ispapi-helper/commit/6ac2501))
+
 ## [1.3.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v1.3.2...v1.3.3) (2019-03-22)
 
 
