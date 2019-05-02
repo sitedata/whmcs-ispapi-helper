@@ -1,7 +1,7 @@
 <?php
-namespace ISPAPINEW;
+namespace ISPAPI;
 
-use ISPAPINEW\Helper;
+use ISPAPI\Helper;
 
 /**
  * PHP Class which loads the required registrars for the HP Domainchecker module.

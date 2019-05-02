@@ -1,5 +1,5 @@
 <?php
-namespace ISPAPINEW;
+namespace ISPAPI;
 
 use WHMCS\Database\Capsule;
 use WHMCS_ClientArea;
