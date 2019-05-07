@@ -177,16 +177,17 @@ class Helper
      */
     public static function getCustomerCurrency()
     {
+        //first take the currency from the URL or from the session; do not move this line!
+        $currency = isset($_REQUEST["currency"]) ? $_REQUEST["currency"] : $_SESSION["currency"];
+
         //if customer logged in, set the configured currency.
         $ca = new WHMCS_ClientArea();
         if ($ca->isLoggedIn()) {
             $user = self::SQLCall("SELECT currency FROM tblclients WHERE id=:id", array(":id" => $ca->getUserID()));
             return $user["currency"];
         }
-        
-        $currency = isset($_REQUEST["currency"]) ? $_REQUEST["currency"] : $_SESSION["currency"];
+                
         //no currency neither provided as request parameter nor by session (not logged in)
-        //TODO: does it make sense to lookup session as we checked it by prev. step?
         if (empty($currency)) {
             $default = self::SQLCall("SELECT id FROM tblcurrencies WHERE `default`=1");
             return $default["id"];
