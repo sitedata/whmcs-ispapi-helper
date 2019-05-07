@@ -184,13 +184,13 @@ class Helper
         $ca = new WHMCS_ClientArea();
         if ($ca->isLoggedIn()) {
             $user = self::SQLCall("SELECT currency FROM tblclients WHERE id=:id", array(":id" => $ca->getUserID()));
-            return $user["currency"];
+            $currency = $user["currency"];
         }
                 
         //no currency neither provided as request parameter nor by session (not logged in)
         if (empty($currency)) {
             $default = self::SQLCall("SELECT id FROM tblcurrencies WHERE `default`=1");
-            return $default["id"];
+            $currency = $default["id"];
         }
         return $currency;
     }
