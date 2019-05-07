@@ -1,3 +1,10 @@
+## [2.1.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.0...v2.1.1) (2019-05-07)
+
+
+### Bug Fixes
+
+* **Helper:** Roll back changes in getCustomerCurrency method ([4506259](https://github.com/hexonet/whmcs-ispapi-helper/commit/4506259))
+
 # [2.1.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.0.0...v2.1.0) (2019-05-02)
 
 
