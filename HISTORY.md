@@ -1,3 +1,10 @@
+## [2.1.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.2...v2.1.3) (2019-05-07)
+
+
+### Bug Fixes
+
+* **Helper:** migrate getCustomerCurrency to new response format ([4209d79](https://github.com/hexonet/whmcs-ispapi-helper/commit/4209d79))
+
 ## [2.1.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.1...v2.1.2) (2019-05-07)
 
 
