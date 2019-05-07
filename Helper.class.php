@@ -183,14 +183,18 @@ class Helper
         //if customer logged in, set the configured currency.
         $ca = new WHMCS_ClientArea();
         if ($ca->isLoggedIn()) {
-            $user = self::SQLCall("SELECT currency FROM tblclients WHERE id=:id", array(":id" => $ca->getUserID()));
-            $currency = $user["currency"];
+            $r = self::SQLCall("SELECT currency FROM tblclients WHERE id=:id", array(":id" => $ca->getUserID()));
+            if ($r["success"]) {
+                $currency = $r["result"]["currency"];
+            }
         }
                 
         //no currency neither provided as request parameter nor by session (not logged in)
         if (empty($currency)) {
-            $default = self::SQLCall("SELECT id FROM tblcurrencies WHERE `default`=1");
-            $currency = $default["id"];
+            $r = self::SQLCall("SELECT id FROM tblcurrencies WHERE `default`=1");
+            if ($r["success"]) {
+                $currency = $r["result"]["id"];
+            }
         }
         return $currency;
     }
