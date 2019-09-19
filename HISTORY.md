@@ -1,3 +1,10 @@
+## [2.1.4](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.3...v2.1.4) (2019-09-19)
+
+
+### Bug Fixes
+
+* **release process:** migrate configuration ([e4dbdd6](https://github.com/hexonet/whmcs-ispapi-helper/commit/e4dbdd6))
+
 ## [2.1.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.2...v2.1.3) (2019-05-07)
 
 
