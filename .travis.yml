@@ -3,15 +3,9 @@ dist: xenial
 notifications:
   email:
     recipients:
-    - kschwarz@hexonet.net
-    - anthonys@hexonet.net
-    - tseelamkurthi@hexonet.net
+    - middleware@hexonet.net
     on_success: never
     on_failure: always
-cache:
-  directories:
-  - "~/.npm"
-  - node_modules
 php:
 - 5.6
 - 7.2
@@ -24,11 +18,20 @@ branches:
     - /^dependabot.*$/
 before_install:
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
+  - export TRAVIS_NODE_VERSION="lts/*"
+addons:
+  apt:
+    update: true
 install:
-  - travis_retry composer install
+  - rm -rf ~/.nvm
+  - git clone https://github.com/creationix/nvm.git ~/.nvm
+  - (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`)
+  - source ~/.nvm/nvm.sh
+  - nvm install $TRAVIS_NODE_VERSION
+  - travis_retry npm i
   - travis_retry composer global require squizlabs/php_codesniffer
 script:
-  - composer run-script codeCheck
+  - npm run codeCheck
 jobs:
   include:
     - stage: release
