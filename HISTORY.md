@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.4...v2.2.0) (2019-11-21)
+
+
+### Features
+
+* **additional fields:** class added ([3984aad](https://github.com/hexonet/whmcs-ispapi-helper/commit/3984aad22bf0c11157d734eb78bbd0bf954bf893))
+
 ## [2.1.4](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.3...v2.1.4) (2019-09-19)
 
 
