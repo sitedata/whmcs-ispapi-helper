@@ -40,7 +40,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
     }
 
-    //untested! TODO
+    /**
+     * Pre-fill WHMCS additional field values by our API data
+     * @param array $r API response
+     * untested! TODO
+     */
     public function setFieldValuesFromAPI($r)
     {
         if ($r["CODE"] == "200") {
