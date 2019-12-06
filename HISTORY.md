@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.2.0...v2.3.0) (2019-12-06)
+
+
+### Features
+
+* **sqlcall:** added insertid in response data ([2305dad](https://github.com/hexonet/whmcs-ispapi-helper/commit/2305dad81cd614794f2062451d02eea0259cdb7e))
+
 # [2.2.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.1.4...v2.2.0) (2019-11-21)
 
 
