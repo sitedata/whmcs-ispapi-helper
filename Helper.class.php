@@ -99,7 +99,9 @@ class Helper
                     $result["result"] = $stmt->fetch(PDO::FETCH_ASSOC);
                     break;
             }
-            if (!$result["success"]) { // execute failed
+            if ($result["success"]) {
+                $result["insertid"] = $pdo->lastInsertId();//before commit!
+            } else {
                 // return the reason: http://php.net/manual/de/pdostatement.errorinfo.php
                 $result["errormsg"] = implode(", ", $stmt->errorInfo());
             }
@@ -290,20 +292,44 @@ class Helper
             ":type" => "Register",
             ":registrationdate" => $apidata["CREATEDDATE"][0],
             ":domain" => strtolower($domain),
-            ":firstpaymentamount" => $recurringamount,
-            ":recurringamount" => $recurringamount,
-            ":paymentmethod" => $gateway,
-            ":registrar" => "ispapi",
-            ":registrationperiod" => 1,
-            ":expirydate" => $apidata["PAIDUNTILDATE"][0],
-            ":subscriptionid" => "",
+            ":firstpaymentamount" => $recurringamount,//normal price or premium!?
+            ":recurringamount" => $recurringamount,//normal price or premium!?
+            ":registrationperiod" => 1,//we could also use RENEWALPERIODS as base
             ":status" => "Active",
-            ":nextduedate" => $apidata["PAIDUNTILDATE"][0],
-            ":nextinvoicedate" => $apidata["PAIDUNTILDATE"][0],
-            ":dnsmanagement" => "on",
-            ":emailforwarding" => "on"
+            ":paymentmethod" => $gateway,
+            ":expirydate" => $apidata["PAIDUNTILDATE"][0],// "00000000"
+            ":nextduedate" => $apidata["PAIDUNTILDATE"][0],// "now()"
+            ":nextinvoicedate" => $apidata["PAIDUNTILDATE"][0],// "now()"
+            ":dnsmanagement" => 1,
+            ":emailforwarding" => 1,
+            ":idprotection" => (int) !empty($apidata["X-ACCEPT-WHOISTRUSTEE-TAC"]),
+            // "donotrenew" => (int) $donotrenew,
+            ":is_premium" => (int) preg_match("/^PREMIUM_/", $apidata["CLASS"][0]),
+            ":registrar" => "ispapi",
+            ":subscriptionid" => ""
         );
         $r = Helper::SQLCall("INSERT INTO tbldomains ({{KEYS}}) VALUES ({{VALUES}})", $info, "execute");
+        $domainid = mysql_insert_id();
+
+        if (array_key_exists("registrarCostPrice", $domain)) {
+            $extraDetails = WHMCS\Domain\Extra::firstOrNew(array("domain_id" => $domainid, "name" => "registrarCostPrice"));
+            $extraDetails->value = $domain["registrarCostPrice"];
+            $extraDetails->save();
+            $extraDetails = WHMCS\Domain\Extra::firstOrNew(array("domain_id" => $domainid, "name" => "registrarCurrency"));
+            $extraDetails->value = (int) $domain["registrarCurrency"];
+            $extraDetails->save();
+        }
+        if ($domain["isPremium"] && array_key_exists("registrarRenewalCostPrice", $domain)) {
+            $extraDetails = WHMCS\Domain\Extra::firstOrNew(array("domain_id" => $domainid, "name" => "registrarRenewalCostPrice"));
+            $extraDetails->value = $domain["registrarRenewalCostPrice"];
+            $extraDetails->save();
+            $extraDetails = WHMCS\Domain\Extra::firstOrNew(array("domain_id" => $domainid, "name" => "registrarCurrency"));
+            if ((int) $extraDetails->value != (int) $domain["registrarCurrency"]) {
+                $extraDetails->value = $domain["registrarCurrency"];
+                $extraDetails->save();
+            }
+        }
+
         return $r["success"];
     }
 
