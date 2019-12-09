@@ -49,7 +49,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     {
         if ($r["CODE"] == "200") {
             $data = [];
-            $r = $r["PROPERTY"];
+            //check if $r["PROPERTY"] has been used for this fn call
+            if (isset($r["PROPERTY"])) {
+                $r = $r["PROPERTY"];
+            }
             foreach ($this->getFields() as $fieldKey => $values) {
                 $type = $this->getConfigValue($fieldKey, "Type");
                 $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
