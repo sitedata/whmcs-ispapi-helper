@@ -1,3 +1,10 @@
+## [2.3.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.1...v2.3.2) (2019-12-10)
+
+
+### Bug Fixes
+
+* **namespace:** usage issues ([576f999](https://github.com/hexonet/whmcs-ispapi-helper/commit/576f9996e5e0f69153b040e44e81f341c7185e13))
+
 ## [2.3.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.0...v2.3.1) (2019-12-10)
 
 
