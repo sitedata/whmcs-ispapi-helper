@@ -373,13 +373,12 @@ class Helper
         }
         $registrarCfg = $registrarModule->call("config", getregistrarconfigoptions($registrar));
 
-        if (!preg_match('/\.(.*)$/i', $domain, $m)) {
+        if (!preg_match('/\.(.*)$/i', $domain)) {
             return array(
                 "success" => false,
                 "msgid" => 'domainnameinvaliderror'
             );
         }
-        $tld = strtolower($m[1]);
         if (Helper::checkDomainExists($domain)) {
             return array(
                 "success" => false,
@@ -443,12 +442,13 @@ class Helper
         $domainprices = localAPI('GetTLDPricing', array(
             'currencyid' => $client["currency"]
         ));
-        if (!$domainprices["result"] == "success") {
+        if ($domainprices["result"] != "success") {
             return array(
                 "success" => false,
                 "msgid" => "tldrenewalpriceerror"
             );
         }
+        $tld = $domainObj->getTLD();
         if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
             return array(
                 "success" => false,
