@@ -1,3 +1,10 @@
+## [2.3.4](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.3...v2.3.4) (2019-12-10)
+
+
+### Bug Fixes
+
+* **import:** review insert query prices for premiums; additional fields chain fix ([d3ba43b](https://github.com/hexonet/whmcs-ispapi-helper/commit/d3ba43bbaa3940dc4c949596ec9593207b232b44))
+
 ## [2.3.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.2...v2.3.3) (2019-12-10)
 
 
