@@ -8,6 +8,7 @@ use PDO;
 if (defined("ROOTDIR")) {
     require_once(implode(DIRECTORY_SEPARATOR, array(ROOTDIR,"includes","registrarfunctions.php")));
 }
+require_once("AdditionalFields.class.php");
 
 /**
  * PHP Helper Class
@@ -250,7 +251,6 @@ class Helper
             $request["address2"] = $contact["STREET"][1];
         }
         $result = localAPI('AddClient', $request);
-        mail("kschwarz@hexonet.net", "dbg", print_r($result, true));
         if ($r["result"] == "success") {
             return Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         }
@@ -334,7 +334,7 @@ class Helper
                     $extraDetails->save();
                     $addcurrency = true;
                 }
-                if ($addcurrency) {
+                if ($addcurrency && isset($premiumpricing["CurrencyCode"])) {
                     $currency = \WHMCS\Billing\Currency::where("code", $premiumpricing["CurrencyCode"])->first();
                     $extraDetails = \WHMCS\Domain\Extra::firstOrNew([
                         "domain_id" => $r["insertid"],
@@ -345,10 +345,39 @@ class Helper
                 }
             }
             //--- care about extension flags (we could handle this in DomainSync instead)
-            $addflds = new ISPAPI\AdditionalFields();
+            $addflds = new \ISPAPI\AdditionalFields();
             $addflds->setDomain($domain->getDomain())->setFieldValuesFromAPI($apidata)->saveToDatabase($r["insertid"]);
         }
         return $r["success"];
+    }
+
+    public static function addFeesTaxes(&$typeprice, &$renewprice, $addons, $apistatus, $clientdata)
+    {
+        //--- consider add-on prices when configured in WHMCS and active on domain level
+        if ($addons["idprotect"] && !empty($apistatus["X-ACCEPT-WHOISTRUSTEE-TAC"][0])) {
+            $addonsPricing = \WHMCS\Database\Capsule::table("tblpricing")
+                ->where("type", "domainaddons")
+                ->where("currency", $clientdata["currency"])
+                ->where("relid", 0)->first(array("ssetupfee"));
+            $typeprice += $addonsPricing->ssetupfee; // * $regperiod here: 1
+            $renewprice += $addonsPricing->ssetupfee; // * $regperiod here: 1
+        }
+        //--- consider taxes
+        if (\WHMCS\Config\Setting::getValue("TaxEnabled") && \WHMCS\Config\Setting::getValue("TaxInclusiveDeduct")) {
+            $excltaxrate = 1;
+            $taxdata = getTaxRate(1, $client["state"], $client["country"]);
+            $taxrate = $taxdata["rate"] / 100;
+            $taxdata = getTaxRate(2, $client["state"], $client["country"]);
+            $taxrate2 = $taxdata["rate"] / 100;
+            if (\WHMCS\Config\Setting::getValue("TaxType") == "Inclusive" && (!$taxrate && !$taxrate2 || $clientdata["taxexempt"])) {
+                $systemFirstTaxRate = \WHMCS\Database\Capsule::table("tbltax")->value("taxrate");
+                if ($systemFirstTaxRate) {
+                    $excltaxrate = 1 + $systemFirstTaxRate / 100;
+                }
+            }
+            $typeprice = round($typeprice / $excltaxrate, 2);
+            $renewprice = round($renewprice / $excltaxrate, 2);
+        }
     }
 
     /**
@@ -365,14 +394,7 @@ class Helper
      */
     public static function importDomain($domain, $registrar, $gateway, $currency, $password, &$contacts)
     {
-
         $domainObj = new \WHMCS\Domains\Domain($domain);
-        $registrarModule = new \WHMCS\Module\Registrar();
-        if (!$registrarModule->load($registrar)) {
-            throw new \WHMCS\Exception("No Registrar Configured");
-        }
-        $registrarCfg = $registrarModule->call("config", getregistrarconfigoptions($registrar));
-
         if (!preg_match('/\.(.*)$/i', $domain)) {
             return array(
                 "success" => false,
@@ -437,7 +459,7 @@ class Helper
                 );
             }
         }
-
+        
         // get tld-specific price and addon configuration details
         $domainprices = localAPI('GetTLDPricing', array(
             'currencyid' => $client["currency"]
@@ -448,43 +470,8 @@ class Helper
                 "msgid" => "tldrenewalpriceerror"
             );
         }
-        $tld = $domainObj->getTLD();
-        if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
-            return array(
-                "success" => false,
-                "msgid" => "tldrenewalpriceerror"
-            );
-        }
         $prices = $domainprices["pricing"][$tld];
-        $renewprice = $prices['renew']['1'];
-        $domainprice = $prices['register']['1'];
 
-        //--- consider add-on prices when configured in WHMCS and active on domain level
-        if ($prices['addons']["idprotect"] && !empty($r["PROPERTY"]["X-ACCEPT-WHOISTRUSTEE-TAC"][0])) {
-            $addonsPricing = \WHMCS\Database\Capsule::table("tblpricing")
-                ->where("type", "domainaddons")
-                ->where("currency", $client["currency"])
-                ->where("relid", 0)->first(array("ssetupfee"));
-            $domainprice += $addonsPricing->ssetupfee; // * $regperiod here: 1
-            $renewprice += $addonsPricing->ssetupfee; // * $regperiod here: 1
-        }
-        //--- consider taxes
-        if (\WHMCS\Config\Setting::getValue("TaxEnabled") && \WHMCS\Config\Setting::getValue("TaxInclusiveDeduct")) {
-            $excltaxrate = 1;
-            $taxdata = getTaxRate(1, $client["state"], $client["country"]);
-            $taxrate = $taxdata["rate"] / 100;
-            $taxdata = getTaxRate(2, $client["state"], $client["country"]);
-            $taxrate2 = $taxdata["rate"] / 100;
-            if (\WHMCS\Config\Setting::getValue("TaxType") == "Inclusive" && (!$taxrate && !$taxrate2 || $client["taxexempt"])) {
-                $systemFirstTaxRate = \WHMCS\Database\Capsule::table("tbltax")->value("taxrate");
-                if ($systemFirstTaxRate) {
-                    $excltaxrate = 1 + $systemFirstTaxRate / 100;
-                }
-            }
-            $domainprice = round($domainprice / $excltaxrate, 2);
-            $renewprice = round($renewprice / $excltaxrate, 2);
-        }
-        
         // get premium price
         $premiumpricing = array();
         if (preg_match("/^PREMIUM_/", $r["PROPERTY"]["SUBCLASS"][0])) {
@@ -494,19 +481,37 @@ class Helper
                     "msgid" => "premiumdomainsinactive" // TODO
                 );
             }
-            $premiumpricing = $registrarModule->call("GetPremiumPrice", [
-                "domain" => $domainObj,
+            $premiumpricing = call_user_func($registrar."_GetPremiumPrice", array_merge(getregistrarconfigoptions($registrar), [
+                "domain" => $domainObj->getDomain(),
                 "sld" => $domainObj->getSecondLevel(),
                 "tld" => $domainObj->getDotTopLevel(),
                 "type" => array("renew")
-            ]);
+            ]));
             if (!isset($premiumpricing['renew'])) {
                 return array(
                     "success" => false,
                     "msgid" => "tldrenewalpriceerror"
                 );
             }
+            $domainprice = $premiumpricing['transfer'];
+            $renewprice = $premiumpricing['renew'];
+            
+            $markupPercentage = \WHMCS\Domains\Pricing\Premium::markupForCost($domainprice);
+            $domainprice = (double) format_as_currency($domainprice * (1 + $markupPercentage / 100));
+            $markupPercentage = \WHMCS\Domains\Pricing\Premium::markupForCost($renewprice);
+            $renewprice = (double) format_as_currency($renewprice * (1 + $markupPercentage / 100));
+        } else {
+            $tld = $domainObj->getTLD();
+            if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
+                return array(
+                    "success" => false,
+                    "msgid" => "tldrenewalpriceerror"
+                );
+            }
+            $domainprice = $prices['register']['1'];
+            $renewprice = $prices['renew']['1'];
         }
+        Helper::addFeesTaxes($domainprice, $renewprice, $prices['addons'], $r["PROPERTY"], $client["currency"]);
 
         $result = Helper::createDomain($domainObj, $r["PROPERTY"], $gateway, $client, $renewprice, $domainprice, $premiumpricing);
         if (!$result) {

@@ -67,5 +67,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             }
             parent::setFieldValues($data);
         }
+        return $this;
     }
 }
