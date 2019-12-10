@@ -496,8 +496,8 @@ class Helper
             }
             $premiumpricing = $registrarModule->call("GetPremiumPrice", [
                 "domain" => $domainObj,
-                "sld" => $domainobj->getSecondLevel(),
-                "tld" => $domainobj->getDotTopLevel(),
+                "sld" => $domainObj->getSecondLevel(),
+                "tld" => $domainObj->getDotTopLevel(),
                 "type" => array("renew")
             ]);
             if (!isset($premiumpricing['renew'])) {
