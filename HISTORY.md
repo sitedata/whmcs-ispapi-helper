@@ -1,3 +1,10 @@
+## [2.3.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.0...v2.3.1) (2019-12-10)
+
+
+### Bug Fixes
+
+* **import:** premium domains & price calculations ([c5d5acc](https://github.com/hexonet/whmcs-ispapi-helper/commit/c5d5accb4c0b951b44e85f6bf37e6b4413a5a2cc))
+
 # [2.3.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.2.0...v2.3.0) (2019-12-06)
 
 
