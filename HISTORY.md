@@ -1,3 +1,10 @@
+## [2.3.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.2...v2.3.3) (2019-12-10)
+
+
+### Bug Fixes
+
+* **import:** fixed typo in var name ([9c6ad6d](https://github.com/hexonet/whmcs-ispapi-helper/commit/9c6ad6d3e5bb0cd9168061b02d5b2000f9eedb13))
+
 ## [2.3.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.1...v2.3.2) (2019-12-10)
 
 
