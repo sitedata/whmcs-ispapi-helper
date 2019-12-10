@@ -317,7 +317,7 @@ class Helper
             if ($is_premium) {
                 $addcurrency = false;
                 if (array_key_exists("transfer", $premiumpricing)) {//register is not available for registered domains
-                    $extraDetails = WHMCS\Domain\Extra::firstOrNew([
+                    $extraDetails = \WHMCS\Domain\Extra::firstOrNew([
                         "domain_id" => $r["insertid"],
                         "name" => "registrarCostPrice"
                     ]);
@@ -326,7 +326,7 @@ class Helper
                     $addcurrency = true;
                 }
                 if (array_key_exists("renew", $premiumpricing)) {
-                    $extraDetails = WHMCS\Domain\Extra::firstOrNew([
+                    $extraDetails = \WHMCS\Domain\Extra::firstOrNew([
                         "domain_id" => $r["insertid"],
                         "name" => "registrarRenewalCostPrice"
                     ]);
@@ -336,7 +336,7 @@ class Helper
                 }
                 if ($addcurrency) {
                     $currency = \WHMCS\Billing\Currency::where("code", $premiumpricing["CurrencyCode"])->first();
-                    $extraDetails = WHMCS\Domain\Extra::firstOrNew([
+                    $extraDetails = \WHMCS\Domain\Extra::firstOrNew([
                         "domain_id" => $r["insertid"],
                         "name" => "registrarCurrency"
                     ]);
@@ -461,7 +461,7 @@ class Helper
 
         //--- consider add-on prices when configured in WHMCS and active on domain level
         if ($prices['addons']["idprotect"] && !empty($r["PROPERTY"]["X-ACCEPT-WHOISTRUSTEE-TAC"][0])) {
-            $addonsPricing = WHMCS\Database\Capsule::table("tblpricing")
+            $addonsPricing = \WHMCS\Database\Capsule::table("tblpricing")
                 ->where("type", "domainaddons")
                 ->where("currency", $client["currency"])
                 ->where("relid", 0)->first(array("ssetupfee"));
@@ -469,14 +469,14 @@ class Helper
             $renewprice += $addonsPricing->ssetupfee; // * $regperiod here: 1
         }
         //--- consider taxes
-        if (WHMCS\Config\Setting::getValue("TaxEnabled") && WHMCS\Config\Setting::getValue("TaxInclusiveDeduct")) {
+        if (\WHMCS\Config\Setting::getValue("TaxEnabled") && \WHMCS\Config\Setting::getValue("TaxInclusiveDeduct")) {
             $excltaxrate = 1;
             $taxdata = getTaxRate(1, $client["state"], $client["country"]);
             $taxrate = $taxdata["rate"] / 100;
             $taxdata = getTaxRate(2, $client["state"], $client["country"]);
             $taxrate2 = $taxdata["rate"] / 100;
-            if (WHMCS\Config\Setting::getValue("TaxType") == "Inclusive" && (!$taxrate && !$taxrate2 || $client["taxexempt"])) {
-                $systemFirstTaxRate = WHMCS\Database\Capsule::table("tbltax")->value("taxrate");
+            if (\WHMCS\Config\Setting::getValue("TaxType") == "Inclusive" && (!$taxrate && !$taxrate2 || $client["taxexempt"])) {
+                $systemFirstTaxRate = \WHMCS\Database\Capsule::table("tbltax")->value("taxrate");
                 if ($systemFirstTaxRate) {
                     $excltaxrate = 1 + $systemFirstTaxRate / 100;
                 }
@@ -488,7 +488,7 @@ class Helper
         // get premium price
         $premiumpricing = array();
         if (preg_match("/^PREMIUM_/", $r["PROPERTY"]["SUBCLASS"][0])) {
-            if (!(bool) (int) WHMCS\Config\Setting::getValue("PremiumDomains")) {
+            if (!(bool) (int) \WHMCS\Config\Setting::getValue("PremiumDomains")) {
                 return array(
                     "success" => false,
                     "msgid" => "premiumdomainsinactive" // TODO
