@@ -335,12 +335,11 @@ class Helper
                     $addcurrency = true;
                 }
                 if ($addcurrency && isset($premiumpricing["CurrencyCode"])) {
-                    $currency = \WHMCS\Billing\Currency::where("code", $premiumpricing["CurrencyCode"])->first();
                     $extraDetails = \WHMCS\Domain\Extra::firstOrNew([
                         "domain_id" => $r["insertid"],
                         "name" => "registrarCurrency"
                     ]);
-                    $extraDetails->value = $currency->id;
+                    $extraDetails->value = $premiumpricing["currency"]->id;//manually added before!
                     $extraDetails->save();
                 }
             }
@@ -495,11 +494,17 @@ class Helper
             }
             $domainprice = $premiumpricing['transfer'];
             $renewprice = $premiumpricing['renew'];
-            
+
+            $premiumpricing["currency"] = \WHMCS\Billing\Currency::where("code", $premiumpricing["CurrencyCode"])->first();
             $markupPercentage = \WHMCS\Domains\Pricing\Premium::markupForCost($domainprice);
-            $domainprice = (double) format_as_currency($domainprice * (1 + $markupPercentage / 100));
+            $domainprice = $domainprice * (1 + $markupPercentage / 100);
+            $domainprice = convertCurrency($domainprice, $premiumpricing["currency"]->id, $client["currency"]);
+            $domainprice = (double) format_as_currency($domainprice);
+            
             $markupPercentage = \WHMCS\Domains\Pricing\Premium::markupForCost($renewprice);
-            $renewprice = (double) format_as_currency($renewprice * (1 + $markupPercentage / 100));
+            $renewprice = $renewprice * (1 + $markupPercentage / 100);
+            $renewprice = convertCurrency($renewprice, $premiumpricing["currency"]->id, $client["currency"]);
+            $renewprice = (double) format_as_currency($renewprice);
         } else {
             $tld = $domainObj->getTLD();
             if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
