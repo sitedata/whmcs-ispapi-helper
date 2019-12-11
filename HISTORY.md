@@ -1,3 +1,10 @@
+## [2.3.5](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.4...v2.3.5) (2019-12-11)
+
+
+### Bug Fixes
+
+* **import:** fix: add currency conversion for premium domain customer price ([9efd2cc](https://github.com/hexonet/whmcs-ispapi-helper/commit/9efd2cce4844e3a36fe460bbc43d8e8973808eec))
+
 ## [2.3.4](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.3...v2.3.4) (2019-12-10)
 
 
