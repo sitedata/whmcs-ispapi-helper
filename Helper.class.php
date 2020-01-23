@@ -451,7 +451,7 @@ class Helper
         $client = Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         if (!$client) {
             $client = Helper::addClient($contact, $currency, $password);
-            if (!$client) {
+            if ($client===false) {
                 return array(
                     "success" => false,
                     "msgid" => "registrantcreateerror"
