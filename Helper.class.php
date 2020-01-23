@@ -250,7 +250,7 @@ class Helper
         if (!empty($contact["STREET"][1])) {
             $request["address2"] = $contact["STREET"][1];
         }
-        $result = localAPI('AddClient', $request);
+        $r = localAPI('AddClient', $request);
         if ($r["result"] == "success") {
             return Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         }
