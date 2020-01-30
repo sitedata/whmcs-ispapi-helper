@@ -250,7 +250,7 @@ class Helper
         if (!empty($contact["STREET"][1])) {
             $request["address2"] = $contact["STREET"][1];
         }
-        $result = localAPI('AddClient', $request);
+        $r = localAPI('AddClient', $request);
         if ($r["result"] == "success") {
             return Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         }
@@ -451,7 +451,7 @@ class Helper
         $client = Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         if (!$client) {
             $client = Helper::addClient($contact, $currency, $password);
-            if (!$client) {
+            if ($client===false) {
                 return array(
                     "success" => false,
                     "msgid" => "registrantcreateerror"

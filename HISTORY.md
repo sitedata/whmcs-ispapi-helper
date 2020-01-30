@@ -1,3 +1,11 @@
+## [2.3.6](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.5...v2.3.6) (2020-01-23)
+
+
+### Bug Fixes
+
+* **addclient:** fixed usage of result ([31675e3](https://github.com/hexonet/whmcs-ispapi-helper/commit/31675e30f54ee35388105e6deebb96821287edea))
+* **importDomain:** use addClient result correctly ([511c636](https://github.com/hexonet/whmcs-ispapi-helper/commit/511c6362e98846b0757b485e833965a194f05034))
+
 ## [2.3.5](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.4...v2.3.5) (2019-12-11)
 
 

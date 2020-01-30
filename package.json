@@ -44,11 +44,12 @@
     "application"
   ],
   "devDependencies": {
+    "npm": ">=6.13.4",
     "@hexonet/semantic-release-github-npm-config": "^1.0.0",
     "semantic-release": "^15.13.12"
   },
   "scripts": {
-    "codeCheck": "phpcs --standard=PSR2 --ignore=\"*/vendor/*\" -q -n --colors *.php",
-    "codeFix": "phpcbf --standard=PSR2 --ignore=\"*/vendor/*\" -q *.php"
+    "codeCheck": "phpcs --standard=PSR1,PSR2 -q -n --colors *.php",
+    "codeFix": "phpcbf --standard=PSR1,PSR2 -q *.php"
   }
 }
