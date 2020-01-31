@@ -5,15 +5,20 @@ namespace ISPAPI;
 class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 {
     public static $isOTE = false;
-    public static $additionalfieldscfg = null;
+    public static $entity = "LIVE";
+    public static $additionalfieldscfg = [
+        "OTE"=>null,
+        "LIVE"=>null
+    ];
 
     public static function init($isOTE)
     {
         self::$isOTE = $isOTE;
-        if (!is_null(self::$additionalfieldscfg)) {
+        self::$entity = $isOTE ? "OTE" : "LIVE";
+        if (!is_null(self::$additionalfieldscfg[self::$entity])) {
             return;
         }
-        self::$additionalfieldscfg = [
+        self::$additionalfieldscfg[self::$entity] = [
             "register" => [
                 ".abogado" => [ self::getHighlyRegulatedTLDField(".abogado") ],
                 ".ae" => [ self::getRegulatedTLDField(".ae") ],
@@ -935,27 +940,25 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ]
         ];
         // matching configuration for tlds
-        self::$additionalfieldscfg["register"][".asn.au"] = self::$additionalfieldscfg["register"][".com.au"];
-        self::$additionalfieldscfg["register"][".id.au"] = self::$additionalfieldscfg["register"][".com.au"];
-        self::$additionalfieldscfg["register"][".net.au"] = self::$additionalfieldscfg["register"][".net.au"];
-        self::$additionalfieldscfg["register"][".org.au"] = self::$additionalfieldscfg["register"][".net.au"];
-        self::$additionalfieldscfg["register"][".pm"] = self::$additionalfieldscfg["register"][".fr"];
-        self::$additionalfieldscfg["register"][".re"] = self::$additionalfieldscfg["register"][".fr"];
-        self::$additionalfieldscfg["register"][".tf"] = self::$additionalfieldscfg["register"][".fr"];
-        self::$additionalfieldscfg["register"][".wf"] = self::$additionalfieldscfg["register"][".fr"];
-        self::$additionalfieldscfg["register"][".yt"] = self::$additionalfieldscfg["register"][".fr"];
-        self::$additionalfieldscfg["register"][".рф"] = self::$additionalfieldscfg["register"][".ru"];
-        self::$additionalfieldscfg["register"][".香港"] = self::$additionalfieldscfg["register"][".hk"];
+        self::$additionalfieldscfg[self::$entity]["register"][".asn.au"] = self::$additionalfieldscfg[self::$entity]["register"][".com.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".id.au"] = self::$additionalfieldscfg[self::$entity]["register"][".com.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".net.au"] = self::$additionalfieldscfg[self::$entity]["register"][".net.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".org.au"] = self::$additionalfieldscfg[self::$entity]["register"][".net.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".pm"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".re"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".tf"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".wf"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".yt"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".рф"] = self::$additionalfieldscfg[self::$entity]["register"][".ru"];
+        self::$additionalfieldscfg[self::$entity]["register"][".香港"] = self::$additionalfieldscfg[self::$entity]["register"][".hk"];
 
         // matching configuration for type register and transfer
         foreach ([
             ".abogado", ".ae", ".attorney", ".broker", ".cfd", ".de", ".dentist", ".eco", ".eu", ".forex", ".health",
             ".law", ".lawyer", ".lt", ".makeup", ".nu", ".ro", ".sg", ".spreadbetting", ".trading", ".us"
         ] as $tld) {
-            self::$additionalfieldscfg["transfer"][$tld] = self::$additionalfieldscfg["register"][$tld];
+            self::$additionalfieldscfg[self::$entity]["transfer"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
         }
-        // cfg for type register
-        $cfg = [];
 
         //tlds supporting trustee: .bayern, .berlin, .de, .eu, .forex, .it, .jp, .ruhr, .sg, AFNIC TLDs
         ## LOCAL PRESENCE / TRUSTEE SERVICE ##
@@ -963,8 +966,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ## for reference: https://requests.whmcs.com/topic/integrate-trustee-service-as-generic-domain-add-on
         ## Missing: Prodiving a TAC document
         /*
-        $additionaldomainfields[$tld] = [];
-        $additionaldomainfields[$tld][] = [
+        $additionaldomainfields[self::entity][$tld] = [];
+        $additionaldomainfields[self::entity][$tld][] = [
             "Name" => "Local Presence Service",
             "LangVar" => "hxflagstactrustee",
             "Type" => "dropdown",
@@ -974,6 +977,17 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "Default" => ""
         ];
         */
+
+        // add translation support in case no generic LangVar field got configured
+        foreach (self::$additionalfieldscfg[self::$entity] as $type => &$tlds) {
+            foreach ($tlds as $tldkey => &$fields) {
+                foreach ($fields as &$f) {
+                    if (!isset($f["LangVar"])) {// follow a prefixed but similar way WHMCS uses for LangVar ids
+                        $f["LangVar"] = "hxflags" . strtolower(str_replace(".", "", $tldkey) .  "tld" . preg_replace("/[^a-z0-9]/i", "", $f['Name']));
+                    }
+                }
+            }
+        }
     }
 
     public static function getAFNICFields()
@@ -1398,16 +1412,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
         return $this;
     }
-    public function setOTE($isOTE)
+
+    public static function getAdditionalDomainFields($tld, $type = "register")
     {
-        $this->isOTE = $isOTE;
-    }
-    // IMPORTANT!!! do not implement loadFieldsData by including a call to parent::loadFieldsData
-    // This leads to endless loop as in `_AdditionalDomainFields` method
-    // also at least leave this method as empty method otherwise it will fallback to the parent one
-    protected function loadFieldsData()
-    {
-        $transientKey = "ispapiFields" . ucfirst($this->domainType) . ucfirst($this->activeTLD);
+        $transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
         $fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
         if ($fields) {
             $fields = json_decode($fields, true);
@@ -1415,76 +1423,26 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 return ["fields" => $fields];
             }
         }
-        //initialize array
-        $additionaldomainfields = [];
+        // check if a configuration exists for the given order type (register/transfer)
+        $cfg = self::$additionalfieldscfg[self::$entity];
+        if (is_null($cfg) || !Object.prototype.call('hasOwnProperty', $cfg, $type)) {
+            return [];
+        }
+        
+        // check if a configuration exists for the given tld
+        if (Object.prototype.call('hasOwnProperty', $cfg[$type], $tld)) {
+            \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tld]), 86400 * 30);
+            return $cfg[$type][$tld];
+        }
 
-        // check if an file exists for the extension (e.g. sg.php, com.sg.php, de.php)
-        $file = implode(DIRECTORY_SEPARATOR, [ROOTDIR, "modules", "registrars", "ispapi", "additionalfields", basename($this->domainType), basename(substr($this->activeTLD, 1)) . ".php"]);
-        if (!file_exists($file)) {
-            // if not, fallback to 2nd lvl extension
-            // note: in case 3rd lvl extension has NO xflags, but 2nd lvl extension has -> simply add an empty file for 3rd lvl extension
-            $tldshort = preg_replace("/^.+\./", "", $this->activeTLD);
-            if ($this->activeTLD !== "." . $tldshort) {
-                $file = implode(DIRECTORY_SEPARATOR, [ROOTDIR, "modules", "registrars", "ispapi", "additionalfields",  basename($this->domainType), basename($tldshort) . ".php"]);
-                if (!file_exists($file)) {
-                    return ["fields" => []];
-                }
-            }
+        // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
+        $tldfb = preg_replace("/^[^.]+/", "", $tld);
+        if ($tld != $tldfb && Object.prototype.call('hasOwnProperty', $cfg[$type], $tldfb)) {
+            \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
+            return $cfg[$type][$tldfb];
         }
-        include $file;
 
-        $fields = $additionaldomainfields;
-        // add translation support in case no WHMCS default translation is available
-        foreach ($fields as $tldkey => &$fs) {
-            foreach ($fs as &$f) {
-                if (!isset($f["LangVar"])) {// follow a prefixed but similar way WHMCS uses for LangVar ids
-                    $f["LangVar"] = "hxflags" . strtolower(str_replace(".", "", $tldkey) .  "tld" . preg_replace("/[^a-z0-9]/i", "", $f['Name']));
-                }
-            }
-        }
-        $this->fieldsData = $fields;
-        \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($fields), 86400 * 30);
-
-        /*
-        $fields = $this->fetch("dist.additionalfields.php");
-        $fieldMap = array();
-        foreach ($fields as $key => $data) {
-            $fieldMap[$data["Name"]] = $key;
-        }
-        $domainRegistrar = "";
-        $idProtection = false;
-        try {
-            $domain = \WHMCS\Database\Capsule::table("tbldomains")->where("domain", $this->activeDomain)->where("registrar", "!=", "");
-            if (\WHMCS\Session::get("uid")) {
-                $domain->where("userid", (int) \WHMCS\Session::get("uid"));
-            }
-            $domain = $domain->first();
-            if (!$domain) {
-                $extensionData = Extension::where("extension", $this->getTLD())->where("autoreg", "!=", "")->firstOrFail();
-                $domainRegistrar = $extensionData->autoRegistrationRegistrar;
-            } else {
-                $domainRegistrar = $domain->registrar;
-                $idProtection = $domain->idprotection;
-            }
-        } catch (\Exception $e) {
-        }
-        if ($domainRegistrar) {
-            $registrar = new \WHMCS\Module\Registrar();
-            if ($registrar->load($domainRegistrar)) {
-                $result = $registrar->call("AdditionalDomainFields", array("tld" => substr($this->getTLD(), 1), "idprotection" => $idProtection, "type" => $this->domainType, "fields" => $fields));
-                if (is_array($result) && array_key_exists("fields", $result)) {
-                    $this->processFieldOverrides($fields, $fieldMap, $result["fields"]);
-                }
-            }
-        }
-        $this->processFieldOverrides($fields, $fieldMap, $this->fetch("additionalfields.php"));
-        foreach ($fields as $key => $values) {
-            if (array_key_exists("Options", $values)) {
-                $fields[$key]["Options"] = $this->replacePlaceholders($values["Options"]);
-            }
-        }
-        $this->fieldsData = $fields;*/
+        //nothing found ...
+        return [];
     }
 }
-
-AdditionalFields::init();
