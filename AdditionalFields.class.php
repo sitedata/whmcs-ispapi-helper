@@ -4,6 +4,7 @@ namespace ISPAPI;
 
 class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 {
+    public static $transpfx = "hxflags"; // translation key prefix
     public static $isOTE = false;
     public static $entity = "LIVE";
     public static $additionalfieldscfg = [
@@ -23,8 +24,15 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".abogado" => [ self::getHighlyRegulatedTLDField(".abogado") ],
                 ".ae" => [ self::getRegulatedTLDField(".ae") ],
                 ".aero" => [
-                    [ 'Name' => '.AERO ID', 'Ispapi-Name' => "X-AERO-ENS-AUTH-ID" ],
-                    [ 'Name' => '.AERO Key', 'Ispapi-Name' => "X-AERO-ENS-AUTH-KEY", 'Required' => true ]
+                    [
+                        'Name' => '.AERO ID',
+                        'Ispapi-Name' => "X-AERO-ENS-AUTH-ID"
+                    ],
+                    [
+                        'Name' => '.AERO Key',
+                        'Ispapi-Name' => "X-AERO-ENS-AUTH-KEY",
+                        'Required' => true
+                    ]
                 ],
                 ".asia" => self::disableWHMCSFields(["Legal Type", "Identity Form", "Identity Number"]),
                 ".attorney" => [ self::getHighlyRegulatedTLDField(".attorney") ],
@@ -35,38 +43,21 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".boats" => [ self::getHighlyRegulatedTLDField(".boats") ],
                 ".broker" => [ self::getHighlyRegulatedTLDField(".broker") ],
                 ".ca" => self::disableWHMCSFields('CIRA Agreement', [
-                    self::getLegalTypeField([
-                        "Options" => implode(",", [
-                            "CCO|Corporation",
-                            "CCT|Canadian Citizen",
-                            "RES|Permanent Resident of Canada",
-                            "GOV|Government or government entity in Canada",
-                            "EDU|Canadian Educational Institution",
-                            "ASS|Canadian Unincorporated Association",
-                            "HOS|Canadian Hospital",
-                            "PRT|Partnership Registered in Canada",
-                            "TDM|Trade-mark registered in Canada (by a non-Canadian owner)",
-                            "TRD|Canadian Trade Union",
-                            "PLT|Canadian Political Party",
-                            "LAM|Canadian Library Archive or Museum",
-                            "TRS|Trust established in Canada",
-                            "ABO|Aboriginal Peoples (individuals or groups) indigenous to Canada",
-                            "INB|Indian Band recognized by the Indian Act of Canada",
-                            "LGR|Legal Representative of a Canadian Citizen or Permanent Resident",
-                            "OMK|Official mark registered in Canada",
-                            "MAJ|Her Majesty the Queen"
-                        ]),
+                    self::getLegalTypeField(".ca", [
+                        "Options" => [
+                            "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM", "TRD",
+                            "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
+                        ],
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
-                    ]),[
+                    ]),
+                    self::getLanguageField([
                         "Name" => "Contact Language",
-                        "Type" => "dropdown",
-                        "Options" => "EN|English,FR|French",
-                        "Default" => "EN|English",
+                        "Options" => ["EN", "FR"],
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LANGUAGE"
-                    ],[
+                    ]),[
                         "Name" => "WHOIS Opt-out",
-                        "LangVar" => "hxflagswhoisoptout",
+                        "LangVar" => "whoisoptout",
                         "Ispapi-Name" => "X-CA-DISCLOSE"
                     ]
                 ]),
@@ -76,51 +67,23 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Required" => true,
                         "Ispapi-Name" => "X-CN-REGISTRANT-ID-NUMBER"
                     ]),
-                    self::getContactTypeField("REGISTRANT", [
-                        "Options" => implode(",", [
-                            "SFZ|Chinese ID card",
-                            "HZ|Foreign passport",
-                            "GAJMTX|Exit-Entry Permit for Travelling to and from Hong Kong and Macao",
-                            "TWJMTX|Travel passes for Taiwan Residents to Enter or Leave the Mainland",
-                            "WJLSFZ|Foreign Permanent Resident ID Card",
-                            "GAJZZ|Residence permit for Hong Kong, Macao residents",
-                            "TWJZZ|Residence permit for Taiwan residents",
-                            "JGZ|Chinese officer certificate",
-                            "ORG|Chinese Organization Code Certificate",
-                            "YYZZ|Chinese business license",
-                            "TYDM|Certificate for Uniform Social Credit Code",
-                            "BDDM|Military Code Designation",
-                            "JDDWFW|Military Paid External Service License",
-                            "SYDWFR|Public Institution Legal Person Certificate",
-                            "WGCZJG|Resident Representative Offices of Foreign Enterprises Registration Form",
-                            "SHTTFR|Social Organization Legal Person Registration Certificate",
-                            "ZJCS|Religion Activity Site Registration Certificate",
-                            "MBFQY|Private Non-Enterprise Entity Registration Certificate",
-                            "JJHFR|Fund Legal Person Registration Certificate",
-                            "LSZY|Practicing License of Law Firm",
-                            "WGZHWH|Registration Certificate of Foreign Cultural Center in China",
-                            "WLCZJG|Resident Representative Office of Tourism Departments of Foreign Government Approval Registration Certificate",
-                            "SFJD|Judicial Expertise License",
-                            "JWJG|Overseas Organization Certificate",
-                            "SHFWJG|Social Service Agency Registration Certificate",
-                            "MBXXBX|Private School Permit",
-                            "YLJGZY|Medical Institution Practicing License",
-                            "GZJGZY|Notary Organization Practicing License",
-                            "BJWSXX|Beijing School for Children of Foreign Embassy Staff in China Permit",
-                            "QT|Others"
-                        ]),
+                    self::getContactTypeField(".cn", "REGISTRANT", [
+                        "Options" => [
+                            "SFZ", "HZ", "GAJMTX", "TWJMTX", "WJLSFZ", "GAJZZ", "TWJZZ", "JGZ",
+                            "ORG", "YYZZ", "TYDM", "BDDM", "JDDWFW", "SYDWFR", "WGCZJG", "SHTTFR",
+                            "ZJCS", "MBFQY", "JJHFR", "LSZY", "WGZHWH", "WLCZJG", "SFJD", "JWJG",
+                            "SHFWJG", "MBXXBX", "YLJGZY", "GZJGZY", "BJWSXX", "QT"
+                        ],
                         "Ispapi-Name" => "X-CN-REGISTRANT-ID-TYPE"
                     ])
                 ]),
                 ".com.br" => [
-                    [
+                    self::getRegistrantIdentificationField(".com.br", [
                         "Name" => "Identification Number",
-                        "LangVar" => "hxflagsidentificationnumber",
-                        "Type" => "text",
-                        "Required" => true,
-                        "Description" => "Please provide your CPF or CNPJ numbers. These are identification numbers issued by the Department of Federal Revenue of Brazil for tax purposes",
+                        "LangVar" => "identificationnumber",
+                        "Description" => "combridentificationnumberdescr",
                         "Ispapi-Name" => "X-BR-REGISTER-NUMBER"
-                    ]
+                    ])
                 ],
                 ".com.au" => self::disableWHMCSFields(
                     [ "Registrant Name", "Eligibility Name", "Eligibility ID", "Eligibility ID Type", "Eligibility Type", "Eligibility Reason"],
@@ -129,174 +92,109 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                             "Required" => true,
                             "Ispapi-Name" => "X-CN-REGISTRANT-ID-NUMBER"
                         ]),
-                        self::getContactTypeField("REGISTRANT", [
+                        self::getContactTypeField(".com.au", "REGISTRANT", [
                             "Required" => true,
-                            "Options" =>  implode(",", [
-                                "ABN|Australian Business Number",
-                                "ACN|Australian Company Number",
-                                "RBN|Business Registration Number",
-                                "TM|Trademark Number"
-                            ])
+                            "Options" =>  [ "ABN", "ACN", "RBN", "TM" ]
                         ])
                     ]
                 ),
-                ".de" => self::disableWHMCSFields([ "Tax ID", "Address Confirmation", "Agree to DE Terms"], [
+                ".de" => self::disableWHMCSFields(
+                    [ "Tax ID", "Address Confirmation", "Agree to DE Terms"],
                     [
-                        "Name" => "General Request Contact",
-                        "Type" => "text",
-                        "Description" => "The registry will identify this as the general request contact information. You can provide an email address or a website url",
-                        "Required" => false,
-                        "Ispapi-Name" => "X-DE-GENERAL-REQUEST"
-                    ], [
-                        "Name" => "Abuse Team Contact",
-                        "Type" => "text",
-                        "Description" => "The registry will identify this as the abuse team contact information. You can provide an email address or a website url",
-                        "Required" => false,
-                        "Ispapi-Name" => "X-DE-ABUSE-CONTACT"
+                        self::getContactIdentificationField("", [
+                            "Name" => "General Request Contact",
+                            "Description" => "dkgeneralrequestcontactdescr",
+                            "Ispapi-Name" => "X-DE-GENERAL-REQUEST",
+                            "LangVar" => "degeneralrequestcontact"
+                        ]),
+                        self::getContactIdentificationField("", [
+                            "Name" => "Abuse Team Contact",
+                            "Description" => "dkabuseteamcontactdescr",
+                            "Ispapi-Name" => "X-DE-ABUSE-CONTACT",
+                            "LangVar" => "deabuseteamcontact"
+                        ])
                     ]
-                ]),
+                ),
                 ".dentist" => [ self::getHighlyRegulatedTLDField(".dentist") ],
                 ".dk" => [
-                    self::getLegalTypeField([
-                        "Options" => "Individual,Organization",
-                        "Description" => "(Also choose `Individual` in case you're a company without VATID)"
+                    self::getLegalTypeField(".dk", [
+                        "Description" => "dklegaltypedescr"
                     ]),
                     self::getVATIDField(".dk", "REGISTRANT"),
-                    [
+                    self::getContactIdentificationField("", [
                         "Name" => "Registrant Contact",
-                        "LangVar" => "hxflagsdktldregistrantcontact",
-                        "Type" => "text",
-                        "Required" => false,
-                        "Description" => "(DK-HOSTMASTER User ID)",
-                        "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT"
-                    ],
+                        "Description" => "dkcontactdescr",
+                        "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT",
+                        "LangVar" => "dkregistrantcontact"
+                    ]),
                     self::getVATIDField(".dk", "ADMIN"),
-                    [
+                    self::getContactIdentificationField("", [
                         "Name" => "Admin Contact",
-                        "LangVar" => "hxflagsdktldadmincontact",
-                        "Type" => "text",
-                        "Required" => false,
-                        "Description" => "(DK-HOSTMASTER User ID)",
-                        "Ispapi-Name" => "X-DK-ADMIN-CONTACT"
-                    ]
+                        "Description" => "dkcontactdescr",
+                        "Ispapi-Name" => "X-DK-ADMIN-CONTACT",
+                        "LangVar" => "dkadmincontact"
+                    ])
                 ],
                 ".eco" => [ self::getHighlyRegulatedTLDField(".eco") ],
                 ".es" => self::disableWHMCSFields(
                     [ "ID Form Type", "ID Form Number", 'Entity Type'],
                     [
-                    self::getIndividualRegulatedTLDField(".es"),
-                    [
-                        "Name" => "Registrant Type",
-                        "Type" => "dropdown",
-                        "Options" => implode(",", [
-                            "0|Otra; For non-spanish owner",
-                            "1|NIF/NIE; For Spanish Individual or Organization",
-                            "3|Alien registration card"
+                        self::getIndividualRegulatedTLDField(".es"),
+                        self::getContactTypeField(".es", "REGISTRANT", [
+                            "Options" => [ "0", "1", "3" ],
+                            "Required" => true,
+                            "Ispapi-Name" => "X-ES-REGISTRANT-TIPO-IDENTIFICACION"
                         ]),
-                        "Default" => "0|Otra; For non-spanish owner",
-                        "Required" => true,
-                        "Ispapi-Name" => "X-ES-REGISTRANT-TIPO-IDENTIFICACION"
-                    ],[
-                        "Name" => "Registrant Identification Number",
-                        "Type" => "text",
-                        "Required" => true,
-                        "Ispapi-Name" => "X-ES-REGISTRANT-IDENTIFICACION"
-                    ],[
-                        "Name" => "Admin Type",
-                        "Type" => "dropdown",
-                        "Options" => implode(",", [
-                            "0|Otra; For non-spanish owner",
-                            "1|NIF/NIE; For Spanish Individual or Organization",
-                            "3|Alien registration card"
+                        self::getContactIdentificationField("REGISTRANT", [
+                            "Name" => "Registrant Identification Number",
+                            "Required" => true,
+                            "Ispapi-Name" => "X-ES-REGISTRANT-IDENTIFICACION",
+                            "LangVar" => "esregistrantidentificationnumber"
                         ]),
-                        "Default" => "0|Otra; For non-spanish owner",
-                        "Required" => true,
-                        "Ispapi-Name" => "X-ES-ADMIN-TIPO-IDENTIFICACION"
-                    ],[
-                        "Name" => "Admin Identification Number",
-                        "Type" => "text",
-                        "Required" => true,
-                        "Ispapi-Name" => "X-ES-ADMIN-IDENTIFICACION"
-                    ],
-                    self::getLegalTypeField([
-                        "Options" => implode(",", [
-                            "",
-                            "1|Individual",
-                            "39|Economic Interest Group",
-                            "47|Association",
-                            "59|Sports Association",
-                            "68|Professional Association",
-                            "124|Savings Bank",
-                            "150|Community Property",
-                            "152|Community of Owners",
-                            "164|Order or Religious Institution",
-                            "181|Consulate",
-                            "197|Public Law Association",
-                            "203|Embassy",
-                            "229|Local Authority",
-                            "269|Sports Federation",
-                            "286|Foundation",
-                            "365|Mutual Insurance Company",
-                            "434|Regional Government Body",
-                            "436|Central Government Body",
-                            "439|Political Party",
-                            "476|Trade Union",
-                            "510|Farm Partnership",
-                            "524|Public Limited Company",
-                            "525|Sports Association",
-                            "554|Civil Society",
-                            "560|General Partnership",
-                            "562|General and Limited Partnership",
-                            "566|Cooperative",
-                            "608|Worker-owned Company",
-                            "612|Limited Company",
-                            "713|Spanish Office",
-                            "717|Temporary Alliance of Enterprises",
-                            "744|Worker-owned Limited Company",
-                            "745|Regional Public Entity",
-                            "746|National Public Entity",
-                            "747|Local Public Entity",
-                            "878|Designation of Origin Supervisory Council",
-                            "879|Entity Managing Natural Areas",
-                            "877|Others"
+                        self::getContactTypeField(".es", "ADMIN", [
+                            "Options" => [ "0", "1", "3" ],
+                            "Required" => true,
+                            "Ispapi-Name" => "X-ES-REGISTRANT-TIPO-IDENTIFICACION"
                         ]),
-                        "Required" => false,
-                        "Ispapi-Name" => "X-ES-REGISTRANT-FORM-JURIDICA"
-                    ])
+                        self::getContactIdentificationField("ADMIN", [
+                            "Name" => "Admin Identification Number",
+                            "Required" => true,
+                            "Ispapi-Name" => "X-ES-ADMIN-IDENTIFICACION",
+                            "LangVar" => "esadminidentificationnumber"
+                        ]),
+                        self::getLegalTypeField(".es", [
+                            "Options" => [
+                                "", "1", "39", "47", "59", "68", "124", "150", "152", "164", "181", "197", "203", "229", "269", "286", "365",
+                                "434", "436", "439", "476", "510", "524", "525", "554", "560", "562", "566", "608", "612", "713", "717", "744",
+                                "745", "746", "747", "878", "879", "877"
+                            ],
+                            "Required" => false,
+                            "Ispapi-Name" => "X-ES-REGISTRANT-FORM-JURIDICA"
+                        ])
                     ]
                 ),
-                ".eu" => self::disableWHMCSFields([ 'Entity Type' ], [
+                ".eu" => self::disableWHMCSFields(
+                    [ 'Entity Type' ],
                     [
-                        "Name" => "Registrant Citizenship",
-                        "Options" => implode(",", ["", "AT", "BE", "BG", "CZ", "CY", "DE", "DK", "ES", "EE", "FI", "FR", "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SK", "SI", "HR"]),
-                        "Default" => "",
-                        "Description" => "Required only if you're a European Citizen residing outside of the EU",
-                        "Ispapi-Name" => "X-EU-REGISTRANT-CITIZENSHIP",
-                        "Type" => "dropdown",
-                        "Required" => false
+                        self::getCountryField([
+                            "Name" => "Registrant Citizenship",
+                            "Options" => ["", "AT", "BE", "BG", "CZ", "CY", "DE", "DK", "ES", "EE", "FI", "FR", "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SK", "SI", "HR"],
+                            "Description" => "euregistrantcitizenshipdescr",
+                            "Ispapi-Name" => "X-EU-REGISTRANT-CITIZENSHIP"
+                        ])
                     ]
-                ]),
+                ),
                 ".fi" => [
                     self::getRegulatedTLDField(".fi"),
                     self::getRegistrantIdentificationField(".fi", [
                         "Required" => false,
-                        "Description" => (
-                            "<ul><li>Companies: Please provide the registernumber.</li>" .
-                            "<li>Individuals from Finland: provide the identity number.</li>" .
-                            "<li>Other Individuals: leave empty.</li></ul>" .
-                            "For individuals, please note that the X-FI-REGISTRANT-IDNUMBER has to contain of eleven characters of the form DDMMYYCZZZQ, " .
-                            "where DDMMYY is the date of birth, C the century sign, ZZZ the individual number and Q the control character (checksum). The " .
-                            "sign for the century is either + (1800–1899), - (1900–1999), or A (2000–2099). The individual number ZZZ is odd for males and " .
-                            "even for females and for people born in Finland its range is 002-899 (larger numbers may be used in special cases). An example " .
-                            "of a valid code is 311280-888Y."
-                        )
+                        "Description" => "firegistrantidnumberdescr"
                     ]),
                     [
                         "Name"  => "Registrant Birthdate",
-                        "LangVar" => "hxflagsregistrantbirthdate",
+                        "LangVar" => "registrantbirthdate",
                         "Type"  => "text",
-                        "Default" => "",
-                        "Description" => "(YYYY-MM-DD; only required for Individuals not from Finland)"
+                        "Description" => "firegistrantbirthdatedescr"
                     ]
                 ],
                 ".forex" => [ self::getHighlyRegulatedTLDField(".forex") ],
@@ -310,7 +208,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         'Individuals Under 18'
                     ],
                     [
-                        self::getIndivualRegulatedTLDField(".hk", [
+                        self::getIndividualRegulatedTLDField(".hk", [
                             "Required" => [
                                 "Registrant Document Type" => [
                                     "HKID",
@@ -324,24 +222,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         [
                             "Name" => "Registrant Document Type",
                             "Type" => "dropdown",
-                            "Options" => implode(",", [
-                                "HKID|Individual - Hong Kong Identity Number",
-                                "OTHID|Individual - Other's Country Identity Number",
-                                "PASSNO|Individual - Passport No.",
-                                "BIRTHCERT|Individual - Birth Certificate",
-                                "OTHIDV|Individual - Others Individual Document",
-                                "BR|Organization - Business Registration Certificate",
-                                "CI|Organization - Certificate of Incorporation",
-                                "CRS|Organization - Certificate of Registration of a School",
-                                "HKSARG|Organization - Hong Kong Special Administrative Region Government Department",
-                                "HKORDINANCE|Organization - Ordinance of Hong Kong",
-                                "OTHORG|Organization - Others Organization Document"
+                            "Options" => self::getOptions(".hk", "Registrant Document Type", [
+                                "HKID", "OTHID", "PASSNO", "BIRTHCERT", "OTHIDV", "BR", "CI", "CRS", "HKSARG",
+                                "HKORDINANCE", "OTHORG"
                             ]),
-                            "Default" => "HKID|Individual - Hong Kong Identity Number",
-                            "Description" => (
-                                "(NOTE: Additionally, you may need to send us a copy of the document via email. For .HK, this step is only required " .
-                                "upon request by the registry. For .COM.HK, a copy of a business certificate is required before we can process the registration.)"
-                            ),
+                            "Description" => "hkregistrantdocumenttypedescr",
                             "Required" => true,
                             "Ispapi-Name" => "X-HK-REGISTRANT-DOCUMENT-TYPE"
                         ],[
@@ -353,20 +238,21 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                                     'OTHORG'
                                 ]
                             ],
-                            "Description" => "(required for Registrant Document Types `Others Individual/Organization Document`)",
+                            "Description" => "hkregistrantotherdocumenttypedescr",
                             "Ispapi-Name" => "X-HK-REGISTRANT-OTHER-DOCUMENT-TYPE"
                         ],[
                             "Name" => "Registrant Document Number",
                             "Type" => "text",
                             "Required" => true,
                             "Ispapi-Name" => "X-HK-REGISTRANT-DOCUMENT-NUMBER"
-                        ],[
+                        ],
+                        self::getCountryField([
                             "Name" => "Registrant Document Origin Country",
-                            "Type" => "text",
                             "Required" => true,
-                            "Description" => "(two-letter country code in format <a href='https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2' target='_blank'>ISO 3166-1 alpha-2</a>)",
+                            "Options" => "ALL",
                             "Ispapi-Name" => "X-HK-REGISTRANT-DOCUMENT-ORIGIN-COUNTRY"
-                        ],[
+                        ]),
+                        [
                             "Name" => "Registrant Birth Date for individuals",
                             "Type" => "text",
                             "Required" => [
@@ -378,7 +264,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                                     "OTHIDV"
                                 ]
                             ],
-                            "Description" => "(mandatory for individuals, format YYYY-MM-DD)",
+                            "Description" => "hkregistrantbirthdateforindividualsdescr",
                             "Ispapi-Name" => "X-HK-REGISTRANT-BIRTH-DATE"
                         ]
                     ]
@@ -386,30 +272,19 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".homes" => [ self::getHighlyRegulatedTLDField(".homes") ],
                 ".id" => [ self::getHighlyRegulatedTLDField(".id") ],
                 ".ie" => [
-                    [
+                    self::getLegalTypeField(".ie", [
                         "Name" => "Registrant Class",
-                        "Type" => "dropdown",
-                        "Options" => implode(",", [
-                            "Company",
-                            "Business Owner",
-                            "Club/Band/Local Group",
-                            "School/College",
-                            "State Agency",
-                            "Charity",
-                            "Blogger/Other"
-                        ]),
-                        "Default" => "Company",
-                        "Description" => "",
+                        "Options" => [
+                            "Company", "Business Owner", "Club/Band/Local Group", "School/College", "State Agency",
+                            "Charity", "Blogger/Other"
+                        ],
                         "Required" => true,
                         "Ispapi-Name" => "X-IE-REGISTRANT-CLASS"
-                    ], [
+                    ]),
+                    [
                         "Name" => "Proof of connection to Ireland",
                         "Type" => "text",
-                        "Description" => (
-                            "Provide any information supporting your registration request, such as proof of eligibility (e.g. ".
-                            "VAT, RBN, CRO, CHY, NIC, or Trademark number; school roll number; link to social media page) or a ".
-                            "brief explanation of why you want this domain and what you will use it for."
-                        ),
+                        "Description" => "ieproofofconnectiontoirelanddescr",
                         "Required" => true,
                         "Ispapi-Name" => "X-IE-REGISTRANT-REMARKS",
                     ],
@@ -420,117 +295,62 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Required" =>  ["Registrant Class" => ["Company"]]
                     ])
                 ],
-                ".it" => self::disableWHMCSFields([ "Legal Type", "Tax ID", "Publish Personal Data" ], [
+                ".it" => self::disableWHMCSFields(
+                    [ "Legal Type", "Tax ID", "Publish Personal Data" ],
                     [
-                        "Name" => "Accept Section 3",
-                        "Description" => (
-                            "<b>Section 3 - Declarations and assumptions of liability</b><br/><div style='text-align:justify;margin-bottom:10px;'>" .
-                            "The Registrant of the domain name in question, declares under their own responsibility that they are:" .
-                            "<ul><li>in possession of the citizenship or resident in a country belonging to the European Union (in the case of registration for natural persons);</li>" .
-                            "<li>established in a country belonging to the European Union (in the case of registration for other organizations);</li>" .
-                            "<li>aware and accept that the registration and management of a domain name is subject to the 'Rules of assignment and management of domain names in ccTLD. it' and 'Regulations for the resolution of disputes in the ccTLD.it' and their subsequent amendments;</li>" .
-                            "<li>entitled to the use and/or legal availability of the domain name applied for, and that they do not prejudice, with the request for registration, the rights of others;</li>" .
-                            "<li>aware that for the inclusion of personal data in the Database of assigned domain names, and their possible dissemination and accessibility via the Internet, consent must be given explicitly by ticking the appropriate boxes in the information below. See 'The policy of the .it Registry in the Whois Database' on the website of the Registry (http://www.nic.it);</li>" .
-                            "<li>aware and agree that in the case of erroneous or false declarations in this request, the Registry shall immediately revoke the domain name, or proceed with other legal actions. In such case the revocation shall not in any way give rise to claims against the Registry;</li>" .
-                            "<li>release the Registry from any liability resulting from the assignment and use of the domain name by the natural person that has made the request;</li>" .
-                            "<li>accept Italian jurisdiction and laws of the Italian State.</li></ul></div>"
-                        ),
-                        "Type" => "tickbox",
-                        "Ispapi-Name" => "X-IT-ACCEPT-LIABILITY-TAC",
-                        "Required" => true
-                    ],[
-                        "Name" => "Accept Section 5",
-                        "Description" => (
-                            "<b>Section 5 - Consent to the processing of personal data for registration</b><br/><div style='text-align:justify;margin-bottom:10px;'>" .
-                            "The interested party, after reading the above disclosure, gives consent to the processing of information required for registration, as defined " .
-                            "in the above disclosure. Giving consent is optional, but if no consent is given, it will not be possible to finalize the registration, assignment and management of the domain name.</div>"
-                        ),
-                        "Type" => "tickbox",
-                        "Ispapi-Name" => "X-IT-ACCEPT-REGISTRATION-TAC"
-                    ],[
-                        "Name" => "Accept Section 6",
-                        "Description" => (
-                            "<b>Section 6 - Consent to the processing of personal data for diffusion and accessibility via the Internet</b><br/><div style='text-align:justify;margin-bottom:10px;'>" .
-                            "The interested party, after reading the above disclosure, gives consent to the dissemination and accessibility via the Internet, as defined in the disclosure above. " .
-                            "Giving consent is optional, but absence of consent does not allow the dissemination and accessibility of Internet data.</div>"
-                        ),
-                        "Type" => "tickbox",
-                        "Ispapi-Name" => "X-IT-ACCEPT-DIFFUSION-AND-ACCESSIBILITY-TAC",
-                        "Required" => true
-                    ],[
-                        "Name" => "Accept Section 7",
-                        "Description" => (
-                            "<b>Section 7 - Explicit Acceptance of the following points</b><br/><div style='text-align:justify;margin-bottom:10px;'>" .
-                            "For explicit acceptance, the interested party declares that they:" .
-                            "<ul><li>d) are aware and agree that the registration and management of a domain name is subject to the 'Rules of assignment and management of domain names in ccTLD.it' and 'Regulations for the resolution of disputes in the ccTLD.it' and their subsequent amendments;</li>" .
-                            "<li>e) are aware and agree that in the case of erroneous or false declarations in this request, the Registry shall immediately revoke the domain name, or proceed with other legal actions. In such case the revocation shall not in any way give rise to claims against the Registry;</li>" .
-                            "<li>f) release the Registry from any liability resulting from the assignment and use of the domain name by the natural person that has made the request;</li>" .
-                            "<li>g) accept the Italian jurisdiction and laws of the Italian State.</li></ul></div>"
-                        ),
-                        "Type" => "tickbox",
-                        "Ispapi-Name" => "X-IT-ACCEPT-EXPLICIT-TAC",
-                        "Required" => true
-                    ],[
-                        "Name" => "PIN",
-                        "Type" => "text",
-                        "Ispapi-Name" => "X-IT-PIN"
+                        self::getRegulatedTLDField(".it", "section3", [
+                            "Name" => "Accept Section 3",
+                            "Ispapi-Name" => "X-IT-ACCEPT-LIABILITY-TAC"
+                        ]),
+                        self::getRegulatedTLDField(".it", "section5", [
+                            "Name" => "Accept Section 5",
+                            "Ispapi-Name" => "X-IT-ACCEPT-REGISTRATION-TAC",
+                            "Required" => false
+                        ]),
+                        self::getRegulatedTLDField(".it", "section6", [
+                            "Name" => "Accept Section 6",
+                            "Ispapi-Name" => "X-IT-ACCEPT-DIFFUSION-AND-ACCESSIBILITY-TAC"
+                        ]),
+                        self::getRegulatedTLDField(".it", "section7", [
+                            "Name" => "Accept Section 7",
+                            "Ispapi-Name" => "X-IT-ACCEPT-EXPLICIT-TAC"
+                        ]),
+                        [
+                            "Name" => "PIN",
+                            "Type" => "text",
+                            "Ispapi-Name" => "X-IT-PIN"
+                        ]
                     ]
-                ]),
+                ),
                 ".jobs" => [
                     [
                         "Name" => "Website",
                         "Ispapi-Name" => "X-JOBS-COMPANYURL"
-                    ],[
+                    ],
+                    self::getLegalTypeField(".jobs", [
                         "Name" => "Industry Classification",
-                        "Type" => "dropdown",
-                        "Options" => implode(",", [
-                            "2|Accounting/Banking/Finance",
-                            "3|Agriculture/Farming",
-                            "21|Biotechnology/Science",
-                            "5|Computer/Information Technology",
-                            "4|Construction/Building Services",
-                            "12|Consulting",
-                            "6|Education/Training/Library",
-                            "7|Entertainment",
-                            "13|Environmental",
-                            "19|Hospitality",
-                            "10|Government/Civil Service",
-                            "11|Healthcare",
-                            "15|HR/Recruiting",
-                            "16|Insurance",
-                            "17|Legal",
-                            "18|Manufacturing",
-                            "20|Media/Advertising",
-                            "9|Parks & Recreation",
-                            "26|Pharmaceutical",
-                            "22|Real Estate",
-                            "14|Restaurant/Food Service",
-                            "23|Retail",
-                            "8|Telemarketing",
-                            "24|Transportation",
-                            "25|Other"
-                        ]),
-                        "Default" => "2|Accounting/Banking/Finance",
+                        "Options" => [
+                            "2", "3", "21", "5", "4", "12", "6", "7", "13", "19", "10", "11", "15",
+                            "16", "17", "18", "20", "9", "26", "22", "14", "23", "8", "24", "25"
+                        ],
                         "Required" => true,
                         "Ispapi-Name" => "X-JOBS-INDUSTRYCLASSIFICATION"
-                    ],[
+                    ]),
+                    self::getYesNoField(".jobs", [
                         "Name" => "Member of a HR Association",
-                        "Type" => "dropdown",
-                        "Options" => "no|No,yes|Yes",
-                        "Default" => "no|No",
                         "Ispapi-Name" => "X-JOBS-HRANAME"
-                    ],[
+                    ]),
+                    [
                         "Name" => "Contact Job Title",
                         "Type" => "text",
                         "Required" => true,
                         "Ispapi-Name" => "X-JOBS-TITLE"
-                    ],[
+                    ],
+                    self::getContactTypeField(".jobs", "", [
                         "Name" => "Contact Type",
-                        "Type" => "dropdown",
-                        "Options" => "1|Administrative,0|Other",
-                        "Default" => "1|Administrative",
+                        "Options" => ["1", "0"],
                         "Ispapi-Name" => "X-JOBS-ADMINTYPE"
-                    ]
+                    ])
                 ],
                 ".lotto" => [
                     [
@@ -569,34 +389,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".makeup" => [ self::getHighlyRegulatedTLDField(".makeup") ],
                 ".markets" => [ self::getHighlyRegulatedTLDField(".markets") ],
                 ".melbourne" => [
-                    [
-                        "Name" => "Nexus Category",
-                        "LangVar" => "hxflagsnexuscategory",
-                        "Type" => "dropdown",
-                        "Required" => true,
-                        "Options" => implode(",", [
-                            "A|Criteria A - Victorian Entities",
-                            "B|Criteria B - Victorian Residents",
-                            "C|Criteria C - Associated Entities"
-                        ]),
-                        "Default" => "A|Criteria A - Victorian Entities",
-                        "Description" => (
-                            "<div style='padding:10px 0px;text-align:justify'><b>Registration Eligibility</b><br/>In order to register or ".
-                            "renew a domain name the Applicant or Registrant must satisfy one of the following Criteria A, B or C below:<br/><br/>".
-                            "<b>Criteria A – Victorian Entities</b><br/>The Applicant must be an entity registered with the Australian Securities " .
-                            "and Investments Commission or the Australian Business Register that:" .
-                            "<ul><li>has an address in the State of Victoria associated with its ABN, ACN, RBN or ARBN; or</li><li>has a valid corporate address in the State of Victoria.</li></ul><br/>" .
-                            "<b>Criteria B – Victorian Residents</b><br/>The Applicant must be an Australian citizen or resident with a valid address in the State of Victoria.<br/><br/>" .
-                            "<b>Criteria C – Associated Entities</b><br/>The Applicant must be an Associated Entity. The Applicant may only apply for a domain name that is an Exact Match or Partial Match to, or an Abbreviation, or an Acronym of:" .
-                            "<ul><li>the business name of the Applicant, or name by which the Applicant is commonly known ( i.e. a nickname) and the business name must be registered with the appropriate authority in the jurisdiction in which that business is domiciled; or</li>" .
-                            "<li>a product that the Associated Entity manufactures or sells to entities or individuals residing in the State of Victoria;</li>".
-                            "<li>a service that the Associated Entity provides to residents of the State of Victoria;</li>" .
-                            "<li>an event that the Associated Entity organises or sponsors in the State of Victoria;</li>" .
-                            "<li>an activity that the Associated Entity facilitates in the State of Victoria; or</li>" .
-                            "<li>a course or training program that the Associated Entity provides to residents of the State of Victoria.</li></div>"
-                        ),
-                        "Ispapi-Name" => "X-MELBOURNE-NEXUS-CATEGORY"
-                    ]
+                    self::getNexusCategoryField(".melbourne", [
+                        "Options" => [ "A", "B", "C" ],
+                        "Description" => "melbournenexuscategorydescr"
+                    ])
                 ],
                 ".mk" => [
                     self::getVATIDField(".mk", "REGISTRANT", [
@@ -605,46 +401,16 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     self::getContactIdentificationField("REGISTRANT")
                 ],
                 ".my" => [
-                    [
+                    self::getContactTypeField(".my", "REGISTRANT", [
                         "Name" => "Registrant Organisation Type",
-                        "Type" => "dropdown",
-                        "Options" => implode(",", [
-                            "1|architect firm",
-                            "2|audit firm",
-                            "3|business pursuant to business registration act(rob)",
-                            "4|business pursuant to commercial license ordinance",
-                            "5|company pursuant to companies act(roc)",
-                            "6|educational institution accredited/registered by relevant government department/agency",
-                            "7|farmers organisation",
-                            "8|federal government department or agency",
-                            "9|foreign embassy",
-                            "10|foreign office",
-                            "11|government aided primary and/or secondary school",
-                            "12|law firm",
-                            "13|lembaga (board)",
-                            "14|local authority department or agency",
-                            "15|maktab rendah sains mara (mrsm) under the administration of mara",
-                            "16|ministry of defences department or agency",
-                            "17|offshore company",
-                            "18|parents teachers association",
-                            "19|polytechnic under ministry of education administration",
-                            "20|private higher educational institution",
-                            "21|private school",
-                            "22|regional office",
-                            "23|religious entity",
-                            "24|representative office",
-                            "25|society pursuant to societies act(ros)",
-                            "26|sports organisation",
-                            "27|state government department or agency",
-                            "28|trade union",
-                            "29|trustee",
-                            "30|university under the administration of ministry of education",
-                            "31|valuer, appraiser and estate agent firm"
-                        ]),
-                        "Default" => "1|architect firm",
+                        "LangVar" => "myregistrantorganisationtype",
+                        "Options" => [
+                            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10","11", "12", "13", "14", "15", "16",
+                            "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31"
+                        ],
                         "Required" => false,
                         "Ispapi-Name" => "X-MY-REGISTRANT-ORGANIZATION-TYPE"
-                    ],
+                    ]),
                     self::getContactIdentificationField("REGISTRANT"),
                     self::getContactIdentificationField("ADMIN"),
                     self::getContactIdentificationField("TECH"),
@@ -652,10 +418,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ],
                 ".ngo" => [ self::getRegulatedTLDField(".ngo") ],
                 ".no" => [
-                     self::getRegistrantIdentificationField(".no", [
+                    self::getRegistrantIdentificationField(".no", [
                         "Ispapi-Name" => "X-NO-REGISTRANT-IDENTITY"
-                     ]),
-                    self::getFaxFormField("no/search?view=registration")
+                    ]),
+                    self::getFaxFormField()
                 ],
                 ".nu" => [
                     self::getRegulatedTLDField(".nu"),
@@ -666,19 +432,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ])
                 ],
                 ".nyc" => [
-                    [
-                        "Name" => "NEXUS Category",
-                        "LangVar" => "hxflagsnexuscategory",
-                        "Type" => "dropdown",
-                        "Options" => implode(",", [
-                            "1|Natural Person - primary domicile with physical address in NYC",
-                            "2|Entity or organization - primary domicile with physical address in NYC"
-                        ]),
-                        "Default" => "1|Natural Person - primary domicile with physical address in NYC",
-                        "Description" => "(P.O Boxes are prohibited, see <a href='http://www.ownit.nyc/policies/index.php'>.nyc Nexus Policies</a>.)",
-                        "Required" => true,
+                    self::getNexusCategoryField(".nyc", [
+                        "Options" => [ "1", "2" ],
+                        "Description" => "nycnexuscategorydescr",
                         "Ispapi-Name" => "X-NYC-REGISTRANT-NEXUS-CATEGORY"
-                    ]
+                    ])
                 ],
                 ".paris" => [ self::getRegulatedTLDField(".paris") ],
                 ".pl" => self::disableWHMCSFields([ 'Publish Contact in .PL WHOIS' ]),
@@ -696,7 +454,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".ro" => self::disableWHMCSFields([ 'CNPFiscalCode', "Registrant Type"], [
                     self::getContactIdentificationField("REGISTRANT"),
                     self::getVATIDField(".ro", "REGISTRANT", [
-                        'Description' => "(required for EU countries AND for romanian registrants)",
+                        'Description' => "roregistrantvatiddescr",
                         'Required' => false
                     ])
                 ]),
@@ -707,28 +465,22 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ],
                     [
                         self::getRegulatedTLDField(".ru"),
+                        self::getLegalTypeField(".ru"),
                         [
-                            "Name" => "Legal Type",
-                            "LangVar" => "hxflagslegaltype",
-                            "Type" => "dropdown",
-                            "Options" => "Individual,Organization",
-                            "Default" => "Individual"
-                        ], [
                             'Name'  => 'Individuals Birthday',
-                            "Description" => "",
                             "Required" => [
                                 "Legal Type" => [
-                                    "Individual"
+                                    "INDIV"
                                 ]
                             ],
                             "Ispapi-Name" => "X-RU-REGISTRANT-BIRTH-DATE"
                         ], [
                             "Name" => "Individuals Passport Data",
-                            "Description" => "(required for individuals; including passport number, issue date, and place of issue)<br/><br/>",
+                            "Description" => "ruindividualspassportdatadescr",
                             "Type" => "text",
                             "Required" => [
                                 "Legal Type" => [
-                                    "Individual"
+                                    "INDIV"
                                 ]
                             ],
                             "Ispapi-Name" => "X-RU-REGISTRANT-PASSPORT-DATA"
@@ -740,13 +492,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     self::getRegulatedTLDField(".se"),
                     [
                         "Name" => "Identification Number",
-                        "LangVar" => "hxflagsidentificationnumber",
-                        "Description" => "<div style='text-align:justify'><b>For individuals or companies located in Sweden</b> a valid Swedish personal or organizational number must be stated.<br/>
-                                        <b>For individuals and companies outside of Sweden</b> the ID number (e.g. Civic registration number, company registration number, or the equivalent) must be stated.</div>",
+                        "LangVar" => "identificationnumber",
+                        "Description" => "seidentificationnumberdescr",
                         "Ispapi-Name" => "X-NICSE-IDNUMBER"
                     ],[
                         "Name" => "VAT ID",
-                        "LangVar" => "hxflagsregistrantvatid",
+                        "LangVar" => "registrantvatid",
                         "Ispapi-Name" => "X-NICSE-VATID"
                     ]
                 ],
@@ -763,127 +514,87 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".swiss" => [
                     [
                         "Name" => "Registrant Enterprise ID",
-                        "Description" => "(must start with CHE and followed by 9 digits)",
+                        "Description" => "swissregistrantenterpriseiddescr",
                         "Default" => "CHE",
                         "Ispapi-Name" => "X-SWISS-REGISTRANT-ENTERPRISE-ID"
                     ],
                     self::getIntendedUseField()
                 ],
                 ".sydney" => [
-                    [
-                        "Name" => "Nexus Category",
-                        "LangVar" => "hxflagsnexuscategory",
-                        "Type" => "dropdown",
-                        "Ispapi-Name" => "X-SYDNEY-NEXUS-CATEGORY",
-                        "Options" => implode(",", [
-                            "A|Criteria A - New South Wales Entities",
-                            "B|Criteria B - New South Wales Residents",
-                            "C|Criteria C - Associated Entities"
-                        ]),
-                        "Default" => "A|Criteria A - New South Wales Entities",
-                        "Required" => true
-                    ]
+                    self::getNexusCategoryField(".sydney", [
+                        "Options" => [ "A", "B", "C" ]
+                    ])
                 ],
                 ".tel" => [
-                    [
-                        "Name" => "Legal Type",
-                        "LangVar" => "hxflagslegaltype",
-                        "Ispapi-Name" => "X-TEL-WHOISTYPE",
-                        "Options" => implode(",", [
-                            "Natural|Natural Person",
-                            "Legal|Legal Person"
-                        ]),
-                        "Default" => "Natural|Natural Person",
-                        "Required" => true
-                    ], [
+                    self::getLegalTypeField(".tel", [
+                        "Options" => [
+                            "Natural",
+                            "Legal"
+                        ],
+                        "Required" => true,
+                        "Ispapi-Name" => "X-TEL-WHOISTYPE"
+                    ]),
+                    self::getYesNoField(".tel", [
                         "Name" => "WHOIS Opt-out",
-                        "LangVar" => "hxflagswhoisoptout",
-                        "Description" => "(available for Legal Type `Natural`. Choose `No` to get WHOIS data limited to registrant name.)",
-                        "Type" => "dropdown",
+                        "LangVar" => "whoisoptout",
+                        "Description" => "telwhoisoptoutdescr",
                         "Ispapi-Name" => "X-TEL-PUBLISH",
-                        "Options" => implode(",", [
-                            "Y|Yes",
-                            "N|No"
-                        ]),
-                        "Default" => "Y|Yes",
+                        "Options" => ["Y", "N"],
                         "Required" => false
-                    ]
+                    ])
                 ],
                 ".trading" => [ self::getHighlyRegulatedTLDField(".trading") ],
                 ".travel" => self::disableWHMCSFields(
                     ["Trustee Service", ".TRAVEL UIN Code", "Trustee Service Agreement ", ".TRAVEL Usage Agreement"],
                     [
-                        "Name" => ".TRAVEL Industry",
-                        "Description" => "(We acknowledge a relationship to the travel industry and that we are engaged in or plan to engage in activities related to travel.)",
-                        "Type" => "dropdown",
-                        "Ispapi-Name" => "X-TRAVEL-INDUSTRY",
-                        "Default" => "1|Yes",
-                        "Options" => implode(",", [
-                            "1|Yes",
-                            "0|No"
-                        ]),
-                        "Required" => true
+                         self::getYesNoField(".travel", [
+                            "Name" => ".TRAVEL Industry",
+                            "Description" => "traveltravelindustrydescr",
+                            "Ispapi-Name" => "X-TRAVEL-INDUSTRY",
+                            "Options" => [ "1", "0" ],
+                            "Required" => true
+                         ])
                     ]
                 ),
                 ".uk" => self::disableWHMCSFields(["Legal Type", "Company ID Number", "Registrant Name", "WHOIS Opt-out"]),
                 ".us" => [
-                    [
-                        "Name" => "Application Purpose",
-                        "LangVar" => "hxflagsintendeduse",
+                    self::getIntendedUseField(".us", [
                         "Ispapi-Name" => "X-US-NEXUS-APPPURPOSE",
-                        "Options" => implode(",", [
-                            "P1|Business use for profit",
-                            "P2|Non-profit business",
-                            "P2|Club",
-                            "P2|Association",
-                            "P2|Religious Organization",
-                            "P3|Personal Use",
-                            "P4|Educational purposes",
-                            "P5|Government purposes"
-                        ]),
-                        "Default" => "Business use for profit",
-                        "Required" => true
-                    ], [
-                        "Name" => "Nexus Category",
-                        "LangVar" => "hxflagsnexuscategory",
-                        "Description" => "A natural person who is ...",
-                        "Ispapi-Name" => "X-US-NEXUS-CATEGORY",
-                        "Required" => true
-                    ], [
+                        "Type" => "dropdown",
+                        "Options" => [ "P1", "P2", "P3", "P4", "P5" ]
+                    ]),
+                    self::getNexusCategoryField(".us", [
+                        "Options" => [ "C11", "C12", "C21", "C31", "C32" ]
+                    ]),
+                    self::getCountryField([
                         "Name" => "Nexus Country",
-                        "LangVar" => "hxflagsnexuscountry",
-                        "Description" => "<div>Specify the two-letter country-code of the registrant (if Nexus Category is either C31 or C32).</div>",
+                        "LangVar" => "nexuscountry",
+                        "Description" => "usnexuscountrydescr",
                         "Ispapi-Name" => "X-US-NEXUS-VALIDATOR",
+                        "Options" => "ALL",
                         "Required" => [
                             "Nexus Category" => [
                                 "C31",
                                 "C32"
                             ]
-                        ],
-                        "Ispapi-Format" => 'UPPERCASE'
-                    ]
+                        ]
+                    ])
                 ],
                 ".vote" => self::disableWHMCSFields(["Agreement"]),
                 ".voto" => self::disableWHMCSFields(["Agreement"]),
                 ".xxx" => [
                     self::getRegulatedTLDField(".xxx"),
-                    [
-                        "Name" => "Resolving Domain",
-                        "Description" => "(Should this .XXX domain resolve?)",
-                        "Type" => "dropdown",
+                    self::getYesNoField(".xxx", [
+                        "Name" => "Non-Resolving Domain",
+                        "Description" => "xxxnonresolvingdomaindescr",
                         "Ispapi-Name" => "X-XXX-NON-RESOLVING",
-                        "Options" => implode(",", [
-                            "0|Yes - Domain should resolve",
-                            "1|No  - Domain should not resolve"
-                        ]),
-                        "Default" => "0|Yes - Domain should resolve",
-                        "Required" => false
-                    ], [
+                        "Options" => [ "0", "1" ]
+                    ], true),
+                    [
                         "Name" => "Membership ID",
                         "Type" => "text",
-                        "Description" => "(Required in order to make your .XXX domain resolving)",
+                        "Description" => "xxxmembershipiddescr",
                         "Ispapi-Name" => "X-XXX-MEMBERSHIP-CONTACT",
-                        "Default" => "",
                         "Required" => false
                     ]
                 ],
@@ -892,41 +603,18 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "transfer" => [
                 ".ca" => [
                     self::getLegalTypeField([
-                        "Options" => implode(",", [
-                            "CCO|Corporation",
-                            "CCT|Canadian Citizen",
-                            "RES|Permanent Resident of Canada",
-                            "GOV|Government or government entity in Canada",
-                            "EDU|Canadian Educational Institution",
-                            "ASS|Canadian Unincorporated Association",
-                            "HOS|Canadian Hospital",
-                            "PRT|Partnership Registered in Canada",
-                            "TDM|Trade-mark registered in Canada (by a non-Canadian owner)",
-                            "TRD|Canadian Trade Union",
-                            "PLT|Canadian Political Party",
-                            "LAM|Canadian Library Archive or Museum",
-                            "TRS|Trust established in Canada",
-                            "ABO|Aboriginal Peoples (individuals or groups) indigenous to Canada",
-                            "INB|Indian Band recognized by the Indian Act of Canada",
-                            "LGR|Legal Representative of a Canadian Citizen or Permanent Resident",
-                            "OMK|Official mark registered in Canada",
-                            "MAJ|Her Majesty the Queen"
-                        ]),
+                        "Options" => [
+                            "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM",
+                            "TRD", "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
+                        ],
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
                     ])
                 ],
                 ".it" => [
                     [
-                        "Name" => "Accept Section 6",
-                        "Description" => (
-                            "<b>Section 6 - Consent to the processing of personal data for diffusion and accessibility via the Internet</b><br/>" .
-                            "<div style='text-align:justify;margin-bottom:10px;'>The interested party, after reading the above disclosure, gives " .
-                            "consent to the dissemination and accessibility via the Internet, as defined in the disclosure above. Giving consent " .
-                            "is optional, but absence of consent does not allow the dissemination and accessibility of Internet data.</div>"
-                        ),
-                        "Type" => "tickbox",
-                        "Ispapi-Name" => "X-IT-ACCEPT-DIFFUSION-AND-ACCESSIBILITY-TAC",
-                        "Required" => false
+                        "Name" => "PIN",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-IT-PIN"
                     ]
                 ],
                 ".pt" => [
@@ -960,34 +648,70 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             self::$additionalfieldscfg[self::$entity]["transfer"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
         }
 
-        //tlds supporting trustee: .bayern, .berlin, .de, .eu, .forex, .it, .jp, .ruhr, .sg, AFNIC TLDs
-        ## LOCAL PRESENCE / TRUSTEE SERVICE ##
-        ## NOTE: if you want to offer local presence service, add the trustee service price to the domain registration AND transfer price ##
-        ## for reference: https://requests.whmcs.com/topic/integrate-trustee-service-as-generic-domain-add-on
-        ## Missing: Prodiving a TAC document
-        /*
-        $additionaldomainfields[self::entity][$tld] = [];
-        $additionaldomainfields[self::entity][$tld][] = [
-            "Name" => "Local Presence Service",
-            "LangVar" => "hxflagstactrustee",
-            "Type" => "dropdown",
-            "Options" => ",1|Use Local Presence Service (for Registrant and Admin-Contact)",
-            "Ispapi-Name" => "X-BERLIN-ACCEPT-TRUSTEE-TAC",
-            "Description" => "(Required in case you are <b>not</b> domiciled in Berlin)",
-            "Default" => ""
-        ];
-        */
-
         // add translation support in case no generic LangVar field got configured
         foreach (self::$additionalfieldscfg[self::$entity] as $type => &$tlds) {
             foreach ($tlds as $tldkey => &$fields) {
                 foreach ($fields as &$f) {
-                    if (!isset($f["LangVar"])) {// follow a prefixed but similar way WHMCS uses for LangVar ids
-                        $f["LangVar"] = "hxflags" . strtolower(str_replace(".", "", $tldkey) .  "tld" . preg_replace("/[^a-z0-9]/i", "", $f['Name']));
+                    // follow a prefixed but similar way WHMCS uses for LangVar ids
+                    if (!isset($f["LangVar"])) {
+                        $f["LangVar"] = self::getTransKey($tldkey, $f['Name']);
+                    }
+                    // add translation prefix
+                    // preifx is already included in Options, so care just about LangVar and Description
+                    $f["LangVar"] = self::$transpfx . $f["LangVar"];
+                    if (isset($f["Description"])) {// add translation prefix
+                        $f["Description"] = self::$transpfx . $f["Description"];
                     }
                 }
             }
         }
+    }
+
+    public static function cleanSuffix($name)
+    {
+        return preg_replace("/[^a-z0-9]/i", "", $name);
+    }
+
+    public static function disableWHMCSFields($names, $fields = [])
+    {
+        $reversed = array_reverse($names);
+        foreach ($reversed as $name) {
+            array_unshift($fields, [
+                "Name" => $name,
+                "Remove" => true
+            ]);
+        }
+        return $fields;
+    }
+
+    public static function getAdditionalDomainFields($tld, $type = "register")
+    {
+        $transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
+        //$fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
+        //if ($fields) {
+        //    $fields = json_decode($fields, true);
+        //    if (isset($fields) && is_array($fields)) {
+        //        return ["fields" => self::translate($tld, $fields)];
+        //    }
+        //}
+        // check if a configuration exists for the given order type (register/transfer)
+        $cfg = self::$additionalfieldscfg[self::$entity];
+        if (!is_null($cfg) && isset($cfg[$type])) {
+            // check if a configuration exists for the given tld
+            $tlddotted = "." . $tld;
+            if (isset($cfg[$type][$tlddotted])) {
+                \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tlddotted]), 86400 * 30);
+                return self::translate($tld, $cfg[$type][$tlddotted]);
+            }
+            // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
+            $tldfb = preg_replace("/^[^.]+/", "", $tld);
+            if ($tlddotted != $tldfb && isset($cfg[$type][$tldfb])) {
+                \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
+                return self::translate($tld, $cfg[$type][$tldfb]);
+            }
+        }
+        //nothing found ...
+        return [];
     }
 
     public static function getAFNICFields()
@@ -995,131 +719,244 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return self::disableWHMCSFields(
             ["Legal Type","Info","Birthplace City","Birthplace Country","Birthplace Postcode","SIRET Number","VAT Number"],
             [
-                self::getLegalTypeField([
-                    "Options" => implode(",", [
-                        "INDIV|Individual",
-                        "ORG1|Company with VATID or SIREN/SIRET number",
-                        "ORG2|Company with European Trademark",
-                        "ORG3|Company with DUNS Number",
-                        "ORG4|Company local identifier",
-                        "ASS|French Association"
-                    ]),
+                self::getLegalTypeField("afnic", [
+                    "Options" => [ "INDIV", "ORG1", "ORG2", "ORG3", "ORG4", "ASS" ]
                 ]),[
                     "Name" => "VATID or SIREN/SIRET number",
-                    "LangVar" => "hxflagsafnicvatid",
+                    "LangVar" => "afnictldvatid",
                     "Type" => "text",
                     "Ispapi-Name" => "X-FR-REGISTRANT-LEGAL-ID",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ORG1"
-                        ]
-                    ],
-                    "Description" => "(Only for companies with VATID or SIREN/SIRET number)",
+                    "Required" => [ "Legal Type" => [ "ORG1" ] ],
+                    "Description" => "afnictldvatiddescr"
                 ],[
                     "Name" => "Trademark Number",
-                    "LangVar" => "hxflagsafnictrademark",
+                    "LangVar" => "afnictldtrademark",
                     "Ispapi-Name" => "X-FR-REGISTRANT-TRADEMARK-NUMBER",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ORG2"
-                        ]
-                    ],
-                    "Description" => "(Only for companies with a European trademark)"
+                    "Required" => [ "Legal Type" => [ "ORG2" ] ],
+                    "Description" => "afnictldtrademarkdescr"
                 ],[
                     "Name" => "DUNS Number",
-                    "LangVar" => "hxflagsafnicduns",
+                    "LangVar" => "afnictldduns",
                     "Ispapi-Name" => "X-FR-REGISTRANT-DUNS-NUMBER",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ORG3"
-                        ]
-                    ],
-                    "Description" => "(Only for companies with DUNS number)",
+                    "Required" => [ "Legal Type" => [ "ORG3" ] ],
+                    "Description" => "afnictlddunsdescr"
                 ],[
                     "Name" => "Local ID",
-                    "LangVar" => "hxflagsafniclocalid",
+                    "LangVar" => "afnictldlocalid",
                     "Type" => "text",
                     "Ispapi-Name" => "X-FR-REGISTRANT-LOCAL-ID",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ORG4"
-                        ]
-                    ],
-                    "Description" => "(Only for companies with local identifier)",
+                    "Required" => [ "Legal Type" => [ "ORG4" ] ],
+                    "Description" => "afnictldlocaliddescr"
                 ],[
                     "Name" => "Date of Declaration [JO]",
-                    "LangVar" => "hxflagsafnicjodod",
+                    "LangVar" => "afnictldjodod",
                     "Type" => "text",
                     "Ispapi-Name" => "X-FR-REGISTRANT-JO-DATE-DECLARATION",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ASS"
-                        ]
-                    ],
-                    "Description" => "(Only for french association) <div>The date of declaration of the association in the form <b>YYYY-MM-DD</b></div>",
+                    "Required" => [ "Legal Type" => [ "ASS" ] ],
+                    "Description" => "afnictldjododdescr"
                 ],[
                     "Name" => "Number [JO]",
-                    "LangVar" => "hxflagsafnicjonumber",
+                    "LangVar" => "afnictldjonumber",
                     "Type" => "text",
                     "Ispapi-Name" => "X-FR-REGISTRANT-JO-NUMBER",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ASS"
-                        ]
-                    ],
-                    "Description" => "(Only for french association) <div>The number of the Journal Officiel</div>",
+                    "Required" => [ "Legal Type" => [ "ASS" ] ],
+                    "Description" => "afnictldjonumberdescr"
                 ],[
                     "Name" => "Page of Announcement [JO]",
-                    "LangVar" => "hxflagsafnicjopage",
+                    "LangVar" => "afnictldjopage",
                     "Type" => "text",
                     "Ispapi-Name" => "X-FR-REGISTRANT-JO-PAGE",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ASS"
-                        ]
-                    ],
-                    "Description" => "(Only for french association) <div>The page of the announcement in the Journal Officiel</div>",
+                    "Required" => [ "Legal Type" => [ "ASS" ] ],
+                    "Description" => "afnictldjopagedescr"
                 ],[
                     "Name" => "Date of Publication [JO]",
-                    "LangVar" => "hxflagsafnicjodop",
+                    "LangVar" => "afnictldjodop",
                     "Type" => "text",
                     "Ispapi-Name" => "X-FR-REGISTRANT-JO-DATE-PUBLICATION",
-                    "Required" => [
-                        "Legal Type" => [
-                            "ASS"
-                        ]
-                    ],
-                    "Description" => "(Only for french association) <div>The date of publication in the Journal Officiel in the form <b>YYYY-MM-DD</b></div>",
+                    "Required" => [ "Legal Type" => [ "ASS" ] ],
+                    "Description" => "afnictldjodopdescr"
                 ]
             ]
         );
     }
 
-    public static function getLegalTypeField($overrides = [])
+    public static function getAllocationTokenField($tld)
+    {
+        return [
+            "Name" => "Registry's Allocation Token",
+            "LangVar" => "allocationtoken",
+            "Type" => "text",
+            "Required" => true,
+            "Description" => "allocationtokendescr",
+            "Ispapi-Name" => "X-ALLOCATIONTOKEN"
+        ];
+    }
+
+    public static function getContactIdentificationField($contacttype, $overrides = [])
+    {
+        return array_merge([
+            "Name" => ucfirst($contacttype) . " ID number",
+            "LangVar" => strtolower($contacttype) . "idnumber",
+            "Type" => "text",
+            "Required" => false,
+            "Ispapi-Name" => "X-" . $contacttype . "-IDNUMBER"
+        ], $overrides);
+    }
+
+    public static function getContactTypeField($tld, $contacttype, $overrides = [])
     {
         $f = array_merge([
-            "Name" => "Legal Type",
-            "LangVar" => "hxflagslegaltype",
-            "Options" => ""
+            "Name" => ucfirst($contacttype) . " ID Type",
+            "LangVar" => strtolower($contacttype) . "idtype",
+            "Type" => "dropdown",
+            "Options" => [],
+            "Required" => false,
+            "Ispapi-Name" => "X-" . $contacttype . "-IDTYPE"
         ], $overrides);
-        $f["Default"] = explode(",", $f["Options"])[0];
+        $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"]);
+        $f["Default"] = $f["Options"][0];
         return $f;
     }
 
-    public static function getFaxFormField($query)
+    public static function getCountryField($overrides)
+    {
+        $countries = (new Country())->getCountryNameArray();
+        $cfg = array_merge([
+            "Name" => "Registrant Citizenship",
+            "Type" => "dropdown",
+            "Required" => false
+        ], $overrides);
+        $options = [];
+        if ($cfg["Options"]=="ALL") {
+            $cfg["Options"][] = "";
+            foreach ($countries as $ccode => $name) {
+                $cfg["Options"][] = ($ccode . "|" . $name);
+            }
+        } else {
+            foreach ($cfg["Options"] as &$val) {
+                if ($val !== "") {
+                    $val .= ("|" . (isset($countries[$val]) ? $countries[$val] : $val));
+                }
+            }
+        }
+        $cfg["Default"] = $cfg["Options"][0];
+        return $cfg;
+    }
+
+    public static function getFaxFormField()
     {
         return [
             "Name" => "Fax required",
-            "LangVar" => "hxflagsfax",
+            "LangVar" => "fax",
             "Type" => "tickbox",
-            "Description" => (
-                "I confirm I will send <a href='https://www" .
-                (self::$isOTE ? "-ote" : "" ) . ".domainform.net/form/" . $query .
-                "'>this form back</a> to complete the registration process."
-            ),
+            "Description" => "faxdescr",
             "Default" => "",
             "Required" => true
         ];
+    }
+
+    public static function getHighlyRegulatedTLDField($tld)
+    {
+        return [
+            "Name" => "Highly Regulated TLD",
+            "LangVar" => "tachighlyregulated",
+            "Type" => "tickbox",
+            "Required" => true,
+            "Description" => self::getTACDescription($tld, "HIGHLYREGULATED"),
+            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-ACCEPT-HIGHLY-REGULATED-TAC"
+        ];
+    }
+
+    public static function getIndividualRegulatedTLDField($tld, $overrides = [])
+    {
+        return [
+            "Name" => "Terms for Individuals",
+            "LangVar" => "tacagreementindiv",
+            "Type" => "tickbox",
+            "Description" => self::getTACDescription($tld, "INDIVIDUALREGULATED"),
+            "Required" => true,
+            "LangVar" => "tacagreement",
+            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-ACCEPT-INDIVIDUAL-REGISTRATION-TAC"
+        ];
+    }
+
+    public static function getIntendedUseField($tld = "", $overrides = [])
+    {
+        $cfg = array_merge([
+            "Name" => "Intended Use",
+            "LangVar" => "intendeduse",
+            "Type" => "text",
+            "Required" => true,
+            "Ispapi-Name" => "X-CORE-INTENDED-USE"
+        ], $overrides);
+        if ($cfg["Type"] == "dropdown") {
+            $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"]);
+            $f["Default"] = $f["Options"][0];
+        }
+        return $cfg;
+    }
+
+    public static function getLanguageField($overrides = [])
+    {
+        $langs = [];
+        foreach (\Lang::getLocales() as $row) {
+            $langs[$row["languageCode"]] = $row["localisedName"];
+        }
+        $cfg = array_merge([
+            "Name" => "Registrant Language",
+            "Type" => "dropdown",
+            "Required" => false
+        ], $overrides);
+        
+        $options = [];
+        foreach ($cfg["Options"] as &$val) {
+            if ($val !== "") {
+                $lc = strtolower($val);
+                $val .= ("|" . (isset($langs[$lc]) ? $langs[$lc] : $val));
+            }
+        }
+        $cfg["Default"] = $cfg["Options"][0];
+        return $cfg;
+    }
+
+    public static function getLegalTypeField($tld, $overrides = [])
+    {
+        $f = array_merge([
+            "Name" => "Legal Type",
+            "LangVar" => "legaltype",
+            "Options" => ["INDIV", "ORG"]
+        ], $overrides);
+
+        $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"]);
+        $f["Default"] = $f["Options"][0];
+        return $f;
+    }
+
+    public static function getNexusCategoryField($tld, $overrides = [])
+    {
+        $cfg = array_merge([
+            "Name" => "Nexus Category",
+            "LangVar" => "nexuscategory",
+            "Type" => "dropdown",
+            "Required" => true,
+            "Options" => [],
+            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-NEXUS-CATEGORY"
+        ], $overrides);
+        $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"]);
+        $cfg["Default"] = explode(",", $cfg["Options"])[0];
+        return $cfg;
+    }
+
+    public static function getOptions($tld, $transprefix, $optvals)
+    {
+        $options = [];
+        foreach ($optvals as &$val) {
+            if ($val !== "") {
+                $val .= ("|" . self::$transpfx . self::getTransKey($tld, $transprefix . strtolower($val)));
+            }
+            $options[] = $val;
+        }
+        return $options;
     }
 
     public static function getRegistrantIdentificationField($tld, $overrides = [])
@@ -1135,94 +972,16 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         );
     }
 
-    public static function getContactIdentificationField($contacttype, $overrides = [])
+    public static function getRegulatedTLDField($tld, $overrides = [], $descrid = "")
     {
         return array_merge([
-            "Name" => ucfirst($contacttype) . " ID number",
-            "LangVar" => "hxflags" . strtolower($contacttype) . "idnumber",
-            "Type" => "text",
-            "Required" => false,
-            "Ispapi-Name" => "X-" . $contacttype . "-IDNUMBER"
-        ], $overrides);
-    }
-
-    public static function getContactTypeField($contacttype, $overrides = [])
-    {
-        $f = array_merge([
-            "Name" => ucfirst($contacttype) . " ID Type",
-            "LangVar" => "hxflags" . strtolower($contacttype) . "idtype",
-            "Type" => "dropdown",
-            "Options" => "",
-            "Required" => false,
-            "Ispapi-Name" => "X-" . $contacttype . "-IDTYPE"
-        ], $overrides);
-        $f["Default"] = explode(",", $f["Options"])[0];
-        return $f;
-    }
-
-    public static function getVATIDField($tld, $contacttype, $overrides = [])
-    {
-        return array_merge([
-            "Name" => ucfirst($contacttype) . " VAT ID",
-            "LangVar" => "hxflags" . strtolower($contacttype) . "vatid",
-            "Type" => "text",
-            "Description" => "",
-            'Required' => [
-                'Legal Type' => [
-                    'Organization'
-                ]
-            ],
-            "Ispapi-Name" => "X-" . $contacttype . "-VATID"
-        ], $overrides);
-    }
-
-    public static function getIntendedUseField()
-    {
-        return [
-            "Name" => "Intended Use",
-            "LangVar" => "hxflagsintendeduse",
-            "Type" => "text",
+            "Name" => "Agreement",
+            "Type" => "tickbox",
+            "Description" => self::getTACDescription($tld, "REGULATED", $descrid),
             "Required" => true,
-            "Ispapi-Name" => "X-CORE-INTENDED-USE"
-        ];
-    }
-
-    public static function getAllocationTokenField($tld)
-    {
-        $map = [
-            ".bank" => "https://www.register.bank/get-started/",
-            ".insurance" => "https://www.register.insurance/get-started/"
-        ];
-        $url = isset($map[$tld]) ? $map[$tld] : "#";
-
-        return [
-            "Name" => "Registry's Allocation Token",
-            "LangVar" => "hxflagsallocationtoken",
-            "Type" => "text",
-            "Required" => true,
-            "Description" => (
-                "To register a " . strtoupper($tld) . " domain, you must provide the allocation token issued by the registry. " .
-                "Please complete the registrant application <a href='" . $url . "' target='_blank'>here</a> to obtain the token."
-            ),
-            "Ispapi-Name" => "X-ALLOCATIONTOKEN",
-            "Default" => ""
-        ];
-    }
-
-    public static function disableWHMCSFields($names, $fields = [])
-    {
-        foreach ($names as $name) {
-            $fields[] = [
-                "Name" => $name,
-                "Remove" => true
-            ];
-        }
-        return $fields;
-    }
-
-    public static function getTLDClass($tld)
-    {
-        return strtoupper(preg_replace("/\./", "", $tld, 1));
+            "LangVar" => "tacagreement",
+            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-ACCEPT-REGISTRATION-TAC"
+        ], $overrides);
     }
 
     public static function getTAC($tld)
@@ -1230,6 +989,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $tac = [
             ".abogado" => "http://nic.law/eligibilitycriteria/",
             ".ae" => "https://www.nic.ae/content.jsp?action=termcond_ae",
+            ".bank" => "https://www.register.bank/get-started/",
             ".boats" => "https://get.boats/policies/",
             ".broker" => "https://nic.broker/",
             ".cat" => "http://domini.cat/en/domini/rules-cat-domain",
@@ -1242,9 +1002,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".hk" => "https://www.hkirc.hk/content.jsp?id=3#!/6",
             ".homes" => "https://domains.homes/Policies/",
             ".id" => "https://pandi.id/regulasi/",
+            ".insurance" => "https://www.register.insurance/get-started/",
+            ".it" => "https://www.nic.it/sites/default/files/documenti/2019/Synchronous_Technical_Guidelines_v2.5.pdf",
             ".law" => "http://nic.law/eligibilitycriteria/",
             ".markets" => "https://nic.markets/",
             ".ngo" => "https://thenew.org/org-people/about-pir/policies/ngo-ong-policies/",
+            ".no" => "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net/form/no/search?view=registration",
             ".nu" => "https://internetstiftelsen.se/app/uploads/2019/02/terms-and-conditions-nu.pdf",
             ".paris" => "http://bienvenue.paris/registry-policies-paris/",
             ".ru" => "http://www.cctld.ru/en/docs/rules.php",
@@ -1254,99 +1017,110 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".xxx" => "http://www.icmregistry.com/about/policies/registry-registrant-agreement/",
             ".za" => "https://www.zadna.org.za/"
         ];
-        return isset($tac[$tld]) ? $tac[$tld] : false;
+        return isset($tac[$tld]) ? $tac[$tld] : "#";
     }
 
-    public static function getTACDescription($tld, $type = "REGULATED")
+    public static function getTACDescription($tld, $type = "REGULATED", $descrid = false)
     {
         $tac = self::getTAC($tld);
-        if ($type == "HIGHLYREGULATED") {
-            if ($tac) {
-                $descr = (
-                    "Tick to confirm that you certify that the Registrant is eligibile to register this domain and that all provided information is " .
-                    "true and accurate. Eligibility criteria may be viewed <a href='". $tac . "' target='_blank'>here</a>."
-                );
-                if ($tld != ".eco") {
-                    return $descr;
-                }
-                return (
-                    $descr . "<br/>All .ECO domain names " .
-                    "will be first registered with \"server hold\" status pending the completion of the minimum requirements of the Eco Profile, namely, " .
-                    "the .ECO registrant 1) affirming their compliance with the .ECO Eligibility Policy and 2) pledging to support positive change for " .
-                    "the planet and to be honest when sharing information on their environmental actions. The registrant will be emailed with instructions " .
-                    "on how to create an Eco Profile. Once these steps have been completed, the .ECO domain will be immediately activated by the registry."
-                );
+        $map = [
+            "HIGHLYREGULATED" => [
+                "default" => "tachighlyregulateddescrdefault",
+                "notac" => "tachighlyregulateddescrnotac",
+                ".eco" => "tachighlyregulateddescreco"
+            ],
+            "INDIVIDUALREGULATED" => [
+                "default" => "tacindividualregulateddescrdefault"
+            ],
+            "REGULATED" => [
+                "default" => "tacregulateddescrdefault",
+                ".ngo" => "tacregulateddescrngo",
+                ".it" => [
+                    "section3" => "tacregulateddescritsection3",
+                    "section5" => "tacregulateddescritsection5",
+                    "section6" => "tacregulateddescritsection6",
+                    "section7" => "tacregulateddescritsection7"
+                ]
+            ]
+        ];
+
+        if (isset($map[$type][$tld])) {
+            if ($descrid && isset($map[$type][$tld][$descrid])) {
+                return $map[$type][$tld][$descrid];
             }
-            return (
-                "Tick to confirm the <b>Safeguards for Highly-regulated TLDs</b>:<br/>" .
-                "<div style='text-align:justify'>You understand and agree that you will abide by and be compliant with these additional terms:" .
-                "<ol><li>Administrative Contact Information. You agree to provide administrative contact information, which must be kept up-to-date, " .
-                "for the notification of complaints or reports of registration abuse, as well as the contact details of the relevant regulatory, or " .
-                "industry selfregulatory, bodies in their main place of business.</li>" .
-                "<li>Representation. You confirm and represent that you possesses any necessary authorizations, charters, licenses and/or other related " .
-                "credentials for participation in the sector associated with such Highly-Regulated TLD.</li>" .
-                "<li>Report of Changes of Authorization, Charters, Licenses, Credentials. You agree to report any material changes to the validity of " .
-                "your authorizations, charters, licenses and/or other related credentials for participation in the sector associated with the Highly-Regulated " .
-                "TLD to ensure you continue to conform to the appropriate regulations and licensing requirements and generally conduct you activities in the " .
-                "interests of the consumers you serve..</li></ol></div>"
-            );
+            return $map[$type][$tld];
         }
-        if ($type == "INDIVIDUALREGULATED") {
-            return ("Tick to confirm the <a href='" . $tac . "' target='_blank'>Terms for Individuals</a>");
+        if ($tac == "#" && isset($map[$type]["notac"])) {
+            return $map[$type]["notac"];
         }
-        if (!$tac) {
-            $tac = '#';
-        }
-        $descr = (
-            "Tick to confirm that you agree to the <a href='" . $tac . "' target='_blank'>Registry Terms and Conditions of Registration</a> upon new registration of " .
-            $tld . " domain names."
-        );
-        if ($tld != ".ngo") {
-            return $descr;
-        }
-        return (
-            $descr . "<div style='padding:10px 0px;'>The registration of a .NGO domain name is bundled with an .ONG domain name without additional costs. " .
-            "Changes on the .NGO Domain will be auto-applied to the .ONG Domain.</div>"
-        );
+        return $map[$type]["default"];
     }
 
-    public static function getRegulatedTLDField($tld)
+    public static function getTLDClass($tld)
     {
-        return [
-            "Name" => "Agreement",
-            "Type" => "tickbox",
-            "Description" => self::getTACDescription($tld, "REGULATED"),
-            "Required" => true,
-            "LangVar" => "hxflagstacagreement",
-            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-ACCEPT-REGISTRATION-TAC"
-        ];
+        return strtoupper(preg_replace("/\./", "", $tld, 1));
     }
 
-    public static function getIndividualRegulatedTLDField($tld, $overrides = [])
+    public static function getTransKey($tld, $suffix)
     {
-        return [
-            "Name" => "Terms for Individuals",
-            "LangVar" => "hxflagstacagreementindiv",
-            "Type" => "tickbox",
-            "Description" => self::getTACDescription($tld, "INDIVIDUALREGULATED"),
-            "Required" => true,
-            "LangVar" => "hxflagstacagreement",
-            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-ACCEPT-INDIVIDUAL-REGISTRATION-TAC"
-        ];
+        return strtolower(str_replace(".", "", $tld)) . "tld" . self::cleanSuffix($suffix);
     }
 
-    public static function getHighlyRegulatedTLDField($tld)
+    public static function getVATIDField($tld, $contacttype, $overrides = [])
     {
-        return [
-            "Name" => "Highly Regulated TLD",
-            "LangVar" => "hxflagstachighlyregulated",
-            "Type" => "tickbox",
-            "Required" => true,
-            "Description" => self::getTACDescription($tld, "HIGHLYREGULATED"),
-            "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-ACCEPT-HIGHLY-REGULATED-TAC"
-        ];
+        return array_merge([
+            "Name" => ucfirst($contacttype) . " VAT ID",
+            "LangVar" => strtolower($contacttype) . "vatid",
+            "Type" => "text",
+            'Required' => [ 'Legal Type' => [ 'ORG' ] ],
+            "Ispapi-Name" => "X-" . $contacttype . "-VATID"
+        ], $overrides);
     }
-    
+
+    public static function getYesNoField($tld, $overrides = [], $customlables = false)
+    {
+        $cfg = array_merge([
+            "Type" => "dropdown",
+            "Options" => ["no", "yes"]
+        ], $overrides);
+        if (!$customlables) {
+            $cfg["Options"] = self::getOptions($tld, "yesno", $cfg["Options"]);
+        } else {
+            $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"]);
+        }
+        $cfg["Default"] = $cfg["Options"][0];
+        return $cfg;
+    }
+
+    public static function translate($fields)
+    {
+        foreach ($fields as &$f) {
+            // translate Description field
+            if (isset($f["Description"])) {
+                $f["Description"] = \Lang::trans($f["Description"]);
+                if (preg_match("/####TAC####/", $f["Description"])) {
+                    $tac = self::getTAC($tld);
+                    $f["Description"] = preg_replace("/####TAC####/", $tac, $f["Description"]);
+                }
+                if (preg_match("/####TLD####/", $f["Description"])) {
+                    $f["Description"] = preg_replace("/####TLD####/", strtoupper($tld), $f["Description"]);
+                }
+            }
+            // translate Options field
+            if (isset($f["Options"])) {
+                foreach ($f["Options"] as &$opt) {
+                    if (preg_match("/\|/", $opt)) {
+                        $vals = explode("|", $opt);
+                        $opt = ($vals[0] . "|" . \Lang::trans($vals[1]));
+                    }
+                }
+                $f["Options"] = implode(",", $f["Options"]);
+            }
+        }
+        return $fields;
+    }
+
+
     /**
      * @param array $command API command to add additional domain field parameters to
      * @param string $registrantcountry country of the registrant
@@ -1411,38 +1185,5 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             parent::setFieldValues($data);
         }
         return $this;
-    }
-
-    public static function getAdditionalDomainFields($tld, $type = "register")
-    {
-        $transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
-        $fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
-        if ($fields) {
-            $fields = json_decode($fields, true);
-            if (isset($fields) && is_array($fields)) {
-                return ["fields" => $fields];
-            }
-        }
-        // check if a configuration exists for the given order type (register/transfer)
-        $cfg = self::$additionalfieldscfg[self::$entity];
-        if (is_null($cfg) || !Object.prototype.call('hasOwnProperty', $cfg, $type)) {
-            return [];
-        }
-        
-        // check if a configuration exists for the given tld
-        if (Object.prototype.call('hasOwnProperty', $cfg[$type], $tld)) {
-            \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tld]), 86400 * 30);
-            return $cfg[$type][$tld];
-        }
-
-        // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
-        $tldfb = preg_replace("/^[^.]+/", "", $tld);
-        if ($tld != $tldfb && Object.prototype.call('hasOwnProperty', $cfg[$type], $tldfb)) {
-            \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
-            return $cfg[$type][$tldfb];
-        }
-
-        //nothing found ...
-        return [];
     }
 }
