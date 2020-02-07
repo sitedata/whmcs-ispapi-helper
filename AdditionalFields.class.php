@@ -35,7 +35,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ]
                 ],
                 ".asia" => self::disableWHMCSFields(["Legal Type", "Identity Form", "Identity Number"]),
-                ".attorney" => [ self::getHighlyRegulatedTLDField(".attorney") ],
+                ".attorney" => [ self::getHighlyRegulatedTLDField(".attorney") ],//NOTAC
                 ".bank" => [self::getAllocationTokenField(".bank")],
                 ".insurance" => [self::getAllocationTokenField(".insurance")],
                 ".barcelona" => [self::getIntendedUseField()],
@@ -115,7 +115,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         ])
                     ]
                 ),
-                ".dentist" => [ self::getHighlyRegulatedTLDField(".dentist") ],
+                ".dentist" => [ self::getHighlyRegulatedTLDField(".dentist") ],//NOTAC
                 ".dk" => [
                     self::getLegalTypeField(".dk", [
                         "Description" => "dklegaltypedescr"
@@ -376,7 +376,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ])
                 ],
                 ".law" => [ self::getHighlyRegulatedTLDField(".law") ],
-                ".lawyer" => [ self::getHighlyRegulatedTLDField(".lawyer") ],
+                ".lawyer" => [ self::getHighlyRegulatedTLDField(".lawyer") ],//NOTAC
                 ".lt" => [
                     [
                         "Name" => "Legal Entity Identification Code",
@@ -386,7 +386,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ]
                 ],
                 ".madrid" => [ self::getIntendedUseField() ],
-                ".makeup" => [ self::getHighlyRegulatedTLDField(".makeup") ],
+                ".makeup" => [ self::getHighlyRegulatedTLDField(".makeup") ],//NOTAC
                 ".markets" => [ self::getHighlyRegulatedTLDField(".markets") ],
                 ".melbourne" => [
                     self::getNexusCategoryField(".melbourne", [
@@ -1009,6 +1009,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".ngo" => "https://thenew.org/org-people/about-pir/policies/ngo-ong-policies/",
             ".no" => "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net/form/no/search?view=registration",
             ".nu" => "https://internetstiftelsen.se/app/uploads/2019/02/terms-and-conditions-nu.pdf",
+            ".nyc" => "https://www.ownit.nyc/policies/",
             ".paris" => "http://bienvenue.paris/registry-policies-paris/",
             ".ru" => "http://www.cctld.ru/en/docs/rules.php",
             ".se" => "https://internetstiftelsen.se/app/uploads/2019/02/registreringsvillkor-se-eng.pdf",
