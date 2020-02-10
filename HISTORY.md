@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.4.0...v2.5.0) (2020-02-10)
+
+
+### Features
+
+* **additional fields:** .gay configuration (General Availability starting 20th May 2020) ([69822bd](https://github.com/hexonet/whmcs-ispapi-helper/commit/69822bd70d10e01979d594dd3e72777758f822f3))
+
 # [2.4.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.7...v2.4.0) (2020-02-10)
 
 
