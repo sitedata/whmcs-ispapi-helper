@@ -1,3 +1,10 @@
+## [2.5.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.5.1...v2.5.2) (2020-02-10)
+
+
+### Bug Fixes
+
+* **additional fields:** tested configs A-C ([692722a](https://github.com/hexonet/whmcs-ispapi-helper/commit/692722aaa74da215f86a3a9dcb7eb982beab096b))
+
 ## [2.5.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.5.0...v2.5.1) (2020-02-10)
 
 
