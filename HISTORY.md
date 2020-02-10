@@ -1,3 +1,10 @@
+## [2.5.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.5.0...v2.5.1) (2020-02-10)
+
+
+### Bug Fixes
+
+* **additional fields:** consider dotted version of TLD for translate method ([8a6a8e1](https://github.com/hexonet/whmcs-ispapi-helper/commit/8a6a8e1b1838ed7910c2bfa8583c0b3f9a165d85))
+
 # [2.5.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.4.0...v2.5.0) (2020-02-10)
 
 
