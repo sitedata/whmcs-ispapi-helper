@@ -1,3 +1,10 @@
+## [2.3.7](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.6...v2.3.7) (2020-02-10)
+
+
+### Bug Fixes
+
+* **additional fields:** make conditional requirements downward compatible ([c429b9a](https://github.com/hexonet/whmcs-ispapi-helper/commit/c429b9a552a62b0c65951c898250c3e48890dcab))
+
 ## [2.3.6](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.5...v2.3.6) (2020-01-23)
 
 
