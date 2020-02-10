@@ -667,6 +667,18 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
     }
 
+    public static function addToCMD($params, &$command)
+    {
+        //TODO cleanup when _AdditionalDomainFields has $params["type"] fixed
+        $params = injectDomainObjectIfNecessary($params);
+        $type = isset($params["type"]) ? $params["type"] : "register";
+
+        (new self())->setDomain($params["domainObj"]->getDomain())
+                ->setDomainType($type)
+                ->setFieldValues($params["additionalfields"])
+                ->addToCommand($command);
+    }
+
     public static function cleanSuffix($name)
     {
         return preg_replace("/[^a-z0-9]/i", "", $name);
@@ -1131,13 +1143,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         foreach ($this->getFields() as $fieldKey => $values) {
             $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
             if (empty($iname)) {
-                continue;
-            }
-            $ignoreCountries = $this->getConfigValue($fieldKey, "Ispapi-IgnoreForCountries");
-            if (!(
-                empty($ignoreCountries) ||
-                (!empty($registrantcountry) && !in_array(strtoupper($registrantcountry), $ignoreCountries))
-            )) {
                 continue;
             }
             $type = $this->getConfigValue($fieldKey, "Type");

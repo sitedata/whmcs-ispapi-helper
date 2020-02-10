@@ -719,7 +719,7 @@ $additionaldomainfields[$tld][] = [
 
 The values have to be provided as comma-separated string. For better visualization and maintenance, we just concatenate array entries with comma.
 
-#### Ispapi-IgnoreForCountries
+#### Ispapi-IgnoreForCountries [REMOVED by v3.0.0]
 
 Specify a comma-separated list of countries for which this field should get ignored before sending it to our backend system API.
 
@@ -732,7 +732,10 @@ $additionaldomainfields[$tld][] = [
 ];
 ```
 
-> In v3.x.x this parameter changed from type string to array to remove extra code in our registrar module.
+> In v3.x.x this parameter got removed as we deprecate [Local Presence Service](#local-presence-trustee-service) out of the box.
+>
+> WHMCS has to introduce it as Generic Domain Add-On to get it realized correctly. Further more, this additional field for Local Presence Service got saved in WHMCS, but ignored occasionally for API then.
+> This doesn't make sense on top.
 
 #### Ispapi-Format
 
