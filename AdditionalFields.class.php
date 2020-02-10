@@ -696,14 +696,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $fields;
     }
 
-    public static function getAdditionalDomainFields($tld, $type = "register")
+    public static function getAdditionalDomainFields($tld, $type, $whmcsVersion)
     {
         $transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
         //$fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
         //if ($fields) {
         //    $fields = json_decode($fields, true);
         //    if (isset($fields) && is_array($fields)) {
-        //        return ["fields" => self::translate($tld, $fields)];
+        //        return ["fields" => self::translate($tld, $fields, $whmcsVersion)];
         //    }
         //}
         // check if a configuration exists for the given order type (register/transfer)
@@ -713,13 +713,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             $tlddotted = "." . $tld;
             if (isset($cfg[$type][$tlddotted])) {
                 \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tlddotted]), 86400 * 30);
-                return self::translate($tld, $cfg[$type][$tlddotted]);
+                return self::translate($tld, $cfg[$type][$tlddotted], $whmcsVersion);
             }
             // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
             $tldfb = preg_replace("/^[^.]+/", "", $tld);
             if ($tlddotted != $tldfb && isset($cfg[$type][$tldfb])) {
                 \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
-                return self::translate($tld, $cfg[$type][$tldfb]);
+                return self::translate($tld, $cfg[$type][$tldfb], $whmcsVersion);
             }
         }
         //nothing found ...
@@ -1105,7 +1105,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
-    public static function translate($fields)
+    public static function translate($fields, $whmcsVersion)
     {
         foreach ($fields as &$f) {
             // translate Description field
@@ -1128,6 +1128,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     }
                 }
                 $f["Options"] = implode(",", $f["Options"]);
+            }
+            // Make conditional Requirements downward compatible
+            if ($f["Required"] && is_array($f["Required"])) {
+                if (preg_match("/^7\.9\./", $whmcsVersion)) {
+                    $f["Required"] = false;
+                }
             }
         }
         return $fields;
