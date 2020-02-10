@@ -21,6 +21,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
         self::$additionalfieldscfg[self::$entity] = [
             "register" => [
+                // ---------------------- A ---------------------------------
                 ".abogado" => [ self::getHighlyRegulatedTLDField(".abogado") ],
                 ".ae" => [ self::getRegulatedTLDField(".ae") ],
                 ".aero" => [
@@ -36,30 +37,34 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ],
                 ".asia" => self::disableWHMCSFields(["Legal Type", "Identity Form", "Identity Number"]),
                 ".attorney" => [ self::getHighlyRegulatedTLDField(".attorney") ],//NOTAC
+                // ---------------------- B ---------------------------------
                 ".bank" => [self::getAllocationTokenField(".bank")],
-                ".insurance" => [self::getAllocationTokenField(".insurance")],
                 ".barcelona" => [self::getIntendedUseField()],
-                ".cat" => [self::getHighlyRegulatedTLDField(".cat"), self::getIntendedUseField()],
                 ".boats" => [ self::getHighlyRegulatedTLDField(".boats") ],
                 ".broker" => [ self::getHighlyRegulatedTLDField(".broker") ],
-                ".ca" => self::disableWHMCSFields('CIRA Agreement', [
+                // ---------------------- C ---------------------------------
+                ".cat" => [self::getHighlyRegulatedTLDField(".cat"), self::getIntendedUseField()],
+                ".ca" => self::disableWHMCSFields(['CIRA Agreement'], [
                     self::getLegalTypeField(".ca", [
                         "Options" => [
                             "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM", "TRD",
                             "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
                         ],
+                        "Description" => "",
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
                     ]),
+                    [
+                        "Name" => "WHOIS Opt-out",
+                        "LangVar" => "whoisoptout",
+                        "Description" => "catldwhoisoptoutdescr",
+                        "Ispapi-Name" => "X-CA-DISCLOSE"
+                    ],
                     self::getLanguageField([
                         "Name" => "Contact Language",
                         "Options" => ["EN", "FR"],
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LANGUAGE"
-                    ]),[
-                        "Name" => "WHOIS Opt-out",
-                        "LangVar" => "whoisoptout",
-                        "Ispapi-Name" => "X-CA-DISCLOSE"
-                    ]
+                    ])
                 ]),
                 ".cfd" => [ self::getHighlyRegulatedTLDField(".cfd") ],
                 ".cn" => self::disableWHMCSFields(["cnhosting", "cnhregisterclause"], [
@@ -81,12 +86,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     self::getRegistrantIdentificationField(".com.br", [
                         "Name" => "Identification Number",
                         "LangVar" => "identificationnumber",
-                        "Description" => "combridentificationnumberdescr",
+                        "Description" => "combrtldidentificationnumberdescr",
                         "Ispapi-Name" => "X-BR-REGISTER-NUMBER"
                     ])
                 ],
                 ".com.au" => self::disableWHMCSFields(
-                    [ "Registrant Name", "Eligibility Name", "Eligibility ID", "Eligibility ID Type", "Eligibility Type", "Eligibility Reason"],
+                    [ "Registrant ID", "Registrant ID Type", "Registrant Name", "Eligibility Name", "Eligibility ID", "Eligibility ID Type", "Eligibility Type", "Eligibility Reason"],
                     [
                         self::getContactIdentificationField("REGISTRANT", [
                             "Required" => true,
@@ -98,6 +103,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         ])
                     ]
                 ),
+                // ---------------------- D ---------------------------------
                 ".de" => self::disableWHMCSFields(
                     [ "Tax ID", "Address Confirmation", "Agree to DE Terms"],
                     [
@@ -317,6 +323,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Required" =>  ["Registrant Class" => ["Company"]]
                     ])
                 ],
+                ".insurance" => [self::getAllocationTokenField(".insurance")],
                 ".it" => self::disableWHMCSFields(
                     [ "Legal Type", "Tax ID", "Publish Personal Data" ],
                     [
@@ -681,7 +688,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     // add translation prefix
                     // preifx is already included in Options, so care just about LangVar and Description
                     $f["LangVar"] = self::$transpfx . $f["LangVar"];
-                    if (isset($f["Description"])) {// add translation prefix
+                    if (!empty($f["Description"])) {// add translation prefix
                         $f["Description"] = self::$transpfx . $f["Description"];
                     }
                 }
