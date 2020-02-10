@@ -216,6 +216,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ],
                 ".forex" => [ self::getHighlyRegulatedTLDField(".forex") ],
                 ".fr" => self::getAFNICFields(),
+                ".gay" => [
+                    self::getRegulatedTLDField(".gay", [
+                        "Ispapi-Name" => "X-GAY-ACCEPT-REQUIREMENTS"
+                    ])
+                ],
                 ".health" => [ self::getHighlyRegulatedTLDField(".health") ],
                 ".hk" => self::disableWHMCSFields(
                     [
@@ -1029,6 +1034,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".es" => "https://www.dominios.es/dominios/en/todo-lo-que-necesitas-saber/sobre-registros-de-dominios/terms-and-conditions",
             ".fi" => "https://domain.fi/info/en/index/hakeminen/kukavoihakea.html",
             ".forex" => "https://nic.forex/",
+            ".gay" => "https://toplevel.design/policy",
             ".health" => "https://get.health/registration-policies",
             ".hk" => "https://www.hkirc.hk/content.jsp?id=3#!/6",
             ".homes" => "https://domains.homes/Policies/",
