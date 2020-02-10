@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.7...v2.4.0) (2020-02-10)
+
+
+### Features
+
+* **additional fields:** .dk: suppress company data in case legal type bing individual ([943f312](https://github.com/hexonet/whmcs-ispapi-helper/commit/943f31259110b95786d6b5d76942d6a325a2cd4c))
+
 ## [2.3.7](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.3.6...v2.3.7) (2020-02-10)
 
 
