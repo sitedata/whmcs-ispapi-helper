@@ -118,19 +118,36 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".dentist" => [ self::getHighlyRegulatedTLDField(".dentist") ],//NOTAC
                 ".dk" => [
                     self::getLegalTypeField(".dk", [
-                        "Description" => "dklegaltypedescr"
+                        "Name" => "Registrant Legal Type",
+                        "LangVar" => "dktldregistrantlegaltype",
+                        "Description" => "dktldlegaltypedescr",
+                        "Ispapi-CmdRemove" => [
+                            "INDIV" => [
+                                "OWNERCONTACT0" => "ORGANIZATION"
+                            ]
+                        ]
                     ]),
                     self::getVATIDField(".dk", "REGISTRANT"),
                     self::getContactIdentificationField("", [
                         "Name" => "Registrant Contact",
-                        "Description" => "dkcontactdescr",
+                        "Description" => "dktldcontactdescr",
                         "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT",
                         "LangVar" => "dkregistrantcontact"
+                    ]),
+                    self::getLegalTypeField(".dk", [
+                        "Name" => "Admin Legal Type",
+                        "LangVar" => "dktldadminlegaltype",
+                        "Description" => "dktldlegaltypedescr",
+                        "Ispapi-CmdRemove" => [
+                            "INDIV" => [
+                                "ADMINCONTACT0" => "ORGANIZATION"
+                            ]
+                        ]
                     ]),
                     self::getVATIDField(".dk", "ADMIN"),
                     self::getContactIdentificationField("", [
                         "Name" => "Admin Contact",
-                        "Description" => "dkcontactdescr",
+                        "Description" => "dktldcontactdescr",
                         "Ispapi-Name" => "X-DK-ADMIN-CONTACT",
                         "LangVar" => "dkadmincontact"
                     ])
@@ -703,7 +720,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         //if ($fields) {
         //    $fields = json_decode($fields, true);
         //    if (isset($fields) && is_array($fields)) {
-        //        return ["fields" => self::translate($tld, $fields, $whmcsVersion)];
+        //        return self::translate($tld, $fields, $whmcsVersion);
         //    }
         //}
         // check if a configuration exists for the given order type (register/transfer)
@@ -832,7 +849,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 
     public static function getCountryField($overrides)
     {
-        $countries = (new Country())->getCountryNameArray();
+        $countries = (new \WHMCS\Utility\Country())->getCountryNameArray();
         $cfg = array_merge([
             "Name" => "Registrant Citizenship",
             "Type" => "dropdown",
@@ -840,6 +857,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ], $overrides);
         $options = [];
         if ($cfg["Options"]=="ALL") {
+            $cfg["Options"] = [];
             $cfg["Options"][] = "";
             foreach ($countries as $ccode => $name) {
                 $cfg["Options"][] = ($ccode . "|" . $name);
@@ -935,6 +953,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     {
         $f = array_merge([
             "Name" => "Legal Type",
+            "Type" => "dropdown",
             "LangVar" => "legaltype",
             "Options" => ["INDIV", "ORG"]
         ], $overrides);
@@ -1076,7 +1095,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 
     public static function getTransKey($tld, $suffix)
     {
-        return strtolower(str_replace(".", "", $tld)) . "tld" . self::cleanSuffix($suffix);
+        return strtolower(str_replace(".", "", $tld) . "tld" . self::cleanSuffix($suffix));
     }
 
     public static function getVATIDField($tld, $contacttype, $overrides = [])
@@ -1105,7 +1124,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
-    public static function translate($fields, $whmcsVersion)
+    public static function translate($tld, $fields, $whmcsVersion)
     {
         foreach ($fields as &$f) {
             // translate Description field
@@ -1121,32 +1140,45 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             }
             // translate Options field
             if (isset($f["Options"])) {
-                foreach ($f["Options"] as &$opt) {
+                foreach ($f["Options"] as $idx => $opt) {
                     if (preg_match("/\|/", $opt)) {
-                        $vals = explode("|", $opt);
-                        $opt = ($vals[0] . "|" . \Lang::trans($vals[1]));
+                        list($val, $transkey) = explode("|", $opt);
+                        $f["Options"][$idx] = ($val . "|" . \Lang::trans($transkey));
                     }
                 }
                 $f["Options"] = implode(",", $f["Options"]);
             }
             // Make conditional Requirements downward compatible
             if ($f["Required"] && is_array($f["Required"])) {
-                if (preg_match("/^7\.9\./", $whmcsVersion)) {
+                if (substr($whmcsVersion, 0, 3) < "7.9") {
                     $f["Required"] = false;
                 }
             }
         }
-        return $fields;
+        // return in expected WHMCS format
+        return ["fields" => $fields];
     }
 
 
     /**
      * @param array $command API command to add additional domain field parameters to
-     * @param string $registrantcountry country of the registrant
      */
-    public function addToCommand(&$command, $registrantcountry)
+    public function addToCommand(&$command)
     {
         foreach ($this->getFields() as $fieldKey => $values) {
+            $remove = $this->getConfigValue($fieldKey, "Ispapi-CmdRemove");
+            if (!empty($remove)) {
+                if (isset($remove[$this->getFieldValue($fieldKey)])) {
+                    $val = $remove[$this->getFieldValue($fieldKey)];
+                    if (is_array($val)) {
+                        foreach ($val as $k => $v) {
+                            unset($command[$k][$v]);
+                        }
+                    } else {
+                        unset($command[$remove[$this->getFieldValue($fieldKey)]]);
+                    }
+                }
+            }
             $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
             if (empty($iname)) {
                 continue;
@@ -1158,10 +1190,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             }
             if ($type == "tickbox") {
                 $val = ($val) ? 1 : 0;
-            }
-            $format = $this->getConfigValue($fieldKey, "Ispapi-Format");
-            if (!empty($format) && $format == "UPPERCASE") {
-                $val = strtoupper($val);
             }
             if (!empty($val)) {
                 $command[$iname] = $val;

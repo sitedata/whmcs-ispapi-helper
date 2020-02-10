@@ -643,13 +643,15 @@ Therefore, we decided to not activate the local presence service by default in o
 2. Add below code example to the OVERRIDEFILDE, but specific to your TLD:
 
 ```php
-$additionaldomainfields[".it"][] = [
-    "Name" => "Local Presence",
-    "Type" => "dropdown",
-    "Options" => ",1|Use local presence service",
-    "Description" => "(required if not residing in/belonging to a EU Member State)",
-    "Default" => "",
-    "Ispapi-Name" => "X-IT-ACCEPT-TRUSTEE-TAC"
+$additionaldomainfields[".it"] = [
+    [
+        "Name" => "Local Presence",
+        "Type" => "dropdown",
+        "Options" => ",1|Use local presence service",
+        "Description" => "(required if not residing in/belonging to a EU Member State)",
+        "Default" => "",
+        "Ispapi-Name" => "X-IT-ACCEPT-TRUSTEE-TAC"
+    ]
 ];
 ```
 
@@ -663,16 +665,41 @@ TLDs known to support a trustee service over HEXONTE: .bayern, .berlin, .de, .eu
 
 ### ISPAPI specific configuration settings
 
+#### Ispapi-CmdRemove [SINCE v3.0.0]
+
+Used to conditionally remove parameters from final API command, see .dk for example.
+The below example shows how to use this feature. In case the field's value is set to `INDIV`, parameter `OWNERCONTACT0ORGANIZATION` will be removed from final API Command.
+
+```php
+self::$additionalfieldscfg[self::$entity] = [
+    // ...
+    ".dk" => [
+        [
+            "Name" => "Registrant Legal Type",
+            "Ispapi-CmdRemove" => [
+                "INDIV" => "OWNERCONTACT0ORGANIZATION"
+            ],
+            // ...
+        ]
+    ]
+];
+```
+
 #### Ispapi-Name
 
 This property covers the so-called extension flag name of the additional domain field in our backend system API e.g.
 
 ```php
-$additionaldomainfields[$tld][] = [
-    "Name" => "Legal Type",
-    "LangVar" => "hxflaglegaltype",
-    "Ispapi-Name" => "X-CA-LEGALTYPE",
+self::$additionalfieldscfg[self::$entity] = [
     // ...
+    ".ca" => [
+        [
+            "Name" => "Legal Type",
+            "LangVar" => "hxflaglegaltype",
+            "Ispapi-Name" => "X-CA-LEGALTYPE",
+            // ...
+        ]
+    ]
 ];
 ```
 
@@ -682,38 +709,48 @@ Removed in favour of the more compact piped notation WHMCS now allows in propert
 Specify here values for dropdown lists / fields that should reach our backend system API. The index of the value provided here has to correspond to the one specified in property `Options`. e.g.:
 
 ```php
-$additionaldomainfields[$tld][] = [
-    "Name" => "Legal Type",
-    "LangVar" => "hxflaglegaltype",
-    "Options" => implode(",", [
-        "Corporation",
-        "Canadian Citizen",
-        // ...
-        "Her Majesty the Queen"
-    ]),
-    "Ispapi-Options" => implode(",", [
-        "CCO",
-        "CCT",
-        // ...
-        "MAJ"
-    ]),
-    "Ispapi-Name" => "X-CA-LEGALTYPE",
+self::$additionalfieldscfg[self::$entity] = [
+    // ...
+    ".ca" => [
+        [
+            "Name" => "Legal Type",
+            "LangVar" => "hxflaglegaltype",
+            "Options" => implode(",", [
+                "Corporation",
+                "Canadian Citizen",
+                // ...
+                "Her Majesty the Queen"
+            ]),
+            "Ispapi-Options" => implode(",", [
+                "CCO",
+                "CCT",
+                // ...
+                "MAJ"
+            ]),
+            "Ispapi-Name" => "X-CA-LEGALTYPE",
+        ]
+    ]
 ];
 ```
 
 Replace the above by
 
 ```php
-$additionaldomainfields[$tld][] = [
-    "Name" => "Legal Type",
-    "LangVar" => "hxflaglegaltype",
-    "Options" => implode(",", [
-        "CCO|Corporation",
-        "CCT|Canadian Citizen",
-        // ...
-        "MAJ|Her Majesty the Queen"
-    ]),
-    "Ispapi-Name" => "X-CA-LEGALTYPE",
+self::$additionalfieldscfg[self::$entity] = [
+    // ...
+    ".ca" => [
+        [
+            "Name" => "Legal Type",
+            "LangVar" => "hxflaglegaltype",
+            "Options" => implode(",", [
+                "CCO|Corporation",
+                "CCT|Canadian Citizen",
+                // ...
+                "MAJ|Her Majesty the Queen"
+            ]),
+            "Ispapi-Name" => "X-CA-LEGALTYPE",
+        ]
+    ]
 ];
 ```
 
@@ -726,9 +763,14 @@ Specify a comma-separated list of countries for which this field should get igno
 The list will then be compared to registrant's country which is provided by WHMCS in `$params["country"]` in the appropriate registrar module methods.
 
 ```php
-$additionaldomainfields[$tld][] = [
-    //...
-    "Ispapi-IgnoreForCountries" => ['AT','BE','BG']
+self::$additionalfieldscfg[self::$entity] = [
+    // ...
+    ".it" => [
+        [
+            //...
+            "Ispapi-IgnoreForCountries" => ['AT','BE','BG']
+        ]
+    ]
 ];
 ```
 
@@ -736,19 +778,6 @@ $additionaldomainfields[$tld][] = [
 >
 > WHMCS has to introduce it as Generic Domain Add-On to get it realized correctly. Further more, this additional field for Local Presence Service got saved in WHMCS, but ignored occasionally for API then.
 > This doesn't make sense on top.
-
-#### Ispapi-Format
-
-This will auto-format the additional field's value in the format of choice before it is being added to the backend system API command.
-
-Supported values: `UPPERCASE` (to be extended on demand), e.g.
-
-```php
-$additionaldomainfields[$tld][] = [
-    //...
-    "Ispapi-Format" => "UPPERCASE"
-];
-```
 
 #### Ispapi-Replacements [REMOVED by v3.0.0]
 
@@ -761,6 +790,4 @@ If the parameter value is a valid key of this array, it gets replaced by the res
 PHP code to execute short before additional domain fields value (`$value`) will be applied to the backend system API command.
 Provide it as _string_. Thought for manipulating that value manually for any reason.
 
-> For security reasons (**even though no security issue was known**), we decided to deprecate and remove this setting. "Eval is evil!"
-
-Replaced by `Ispapi-Format`.
+> For security reasons (**even though no security issue was known**) and as the need for it deprecated, we decided to remove this setting. "Eval is evil!"
