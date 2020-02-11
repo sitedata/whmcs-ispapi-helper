@@ -90,11 +90,6 @@ How does the translation logic work in detail? Well, we call the static method `
 
 Of course, we have to review in case WHMCS finalizes the additional domain fields translation logic, but we will know about that step because of our open feature request.
 
-#### method `disableWHMCSFields`
-
-Can be used to remove WHMCS' default domain fields and to optionally add custom fields.
-Read chapter [Deactivating a default WHMCS' field](#deactivating-a-default-whmcs-field) for more details.
-
 ##### Input Parameters
 
 * $names: list of field names e.g. `[ "Legal Type", "Birthplace City" ]` of default fields to remove
@@ -585,31 +580,8 @@ customized translation ids
 
 ### Deactivating a default WHMCS' field
 
-Some of the default fields might be deprecated or not matching our API requirements and thus deactivating them, is useful.
-
-1. Open `/resources/domain/dist.additionalfields.php` and search for the domain extension e.g. `.ca`
-2. Copy the `Name` of the field you want to remove into clipboard
-3. Add it as tld-specific configuration as described below:
-
-```php
-self::$additionalfieldscfg[self::$entity] = [
-    //....
-    ".ca" => self::disableWHMCSFields(
-        [
-            // disable default whmcs field with Name `CIRA Agreement
-            'CIRA Agreement'
-            // you can add further entries, as this is an array
-        ],
-        [
-        // here you can add custom field configurations, if necessarry
-        // this will be kept and returned as tld-specific configuration
-        ]
-    ),
-    //....
-];
-```
-
-Read [method disableWHMCSFields](#method-disablewhmcsfields) for more details.
+Using our new way of additional fields integration ensure that **ALL** default additional domain fields of WHMCS are auto-removed if not reused by our own configuration.
+So nothing we have to care about further on.
 
 ### Overriding a default WHMCS' field
 
