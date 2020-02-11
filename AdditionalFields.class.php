@@ -849,7 +849,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $options = [];
         if ($cfg["Options"]=="ALL") {
             $cfg["Options"] = [];
-            if ($cfg["Required"]!==TRUE) {//false or conditional requirement
+            if ($cfg["Required"]!==true) {//false or conditional requirement
                 $cfg["Options"][] = "";
             }
             foreach ($countries as $ccode => $name) {
