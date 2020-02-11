@@ -685,6 +685,25 @@ self::$additionalfieldscfg[self::$entity] = [
 ];
 ```
 
+or, in case the API command is using a nested array, the below way is also supported:
+
+```php
+self::$additionalfieldscfg[self::$entity] = [
+    // ...
+    ".dk" => [
+        [
+            "Name" => "Registrant Legal Type",
+            "Ispapi-CmdRemove" => [
+                "INDIV" => [
+                    "OWNERCONTACT0" => "ORGANIZATION"
+                ]
+            ],
+            // ...
+        ]
+    ]
+];
+```
+
 #### Ispapi-Name
 
 This property covers the so-called extension flag name of the additional domain field in our backend system API e.g.
