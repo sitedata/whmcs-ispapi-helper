@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.6.0...v2.6.1) (2020-02-11)
+
+
+### Bug Fixes
+
+* **additional fields:** fix auto-cleanup of whmcs default fields; reviewed configs ([2e181d1](https://github.com/hexonet/whmcs-ispapi-helper/commit/2e181d1a1aa3ace6388bda95b0274be464120e0b))
+
 # [2.6.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.5.2...v2.6.0) (2020-02-11)
 
 
