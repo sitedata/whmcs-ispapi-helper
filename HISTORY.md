@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.5.2...v2.6.0) (2020-02-11)
+
+
+### Features
+
+* **additional fields:** auto-remove WHMCS fields if not overwritten; translation cleanup/review ([b06d336](https://github.com/hexonet/whmcs-ispapi-helper/commit/b06d3369c7a8c177ff1996f92b6548e99c61033c))
+
 ## [2.5.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.5.1...v2.5.2) (2020-02-10)
 
 
