@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.6.1...v2.7.0) (2020-02-12)
+
+
+### Features
+
+* **additional fields:** auto-add empty-valued option; use placeholder for countries; review ([b0c6de4](https://github.com/hexonet/whmcs-ispapi-helper/commit/b0c6de4d48959c430722845c26ae624efcabe645))
+
 ## [2.6.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.6.0...v2.6.1) (2020-02-11)
 
 
