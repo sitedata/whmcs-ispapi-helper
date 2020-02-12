@@ -50,6 +50,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                             "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
                         ],
                         "Description" => "",
+                        "Required" => true,
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
                     ]),
                     [
@@ -120,13 +121,17 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "Registrant Legal Type",
                         "LangVar" => "dktldregistrantlegaltype",
                         "Description" => "dktldlegaltypedescr",
+                        "Required" => true,
                         "Ispapi-CmdRemove" => [
                             "INDIV" => [
                                 "OWNERCONTACT0" => "ORGANIZATION"
                             ]
                         ]
                     ]),
-                    self::getVATIDField(".dk", "REGISTRANT"),
+                    self::getVATIDField(".dk", "REGISTRANT", [
+                        "Required" => [ "Registrant Legal Type" => ["ORG"] ],
+                        "Description" => "dktldregistrantvatiddescr"
+                    ]),
                     self::getContactIdentificationField("", [
                         "Name" => "Registrant Contact",
                         "Description" => "dktldcontactdescr",
@@ -137,13 +142,17 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "Admin Legal Type",
                         "LangVar" => "dktldadminlegaltype",
                         "Description" => "dktldlegaltypedescr",
+                        "Required" => true,
                         "Ispapi-CmdRemove" => [
                             "INDIV" => [
                                 "ADMINCONTACT0" => "ORGANIZATION"
                             ]
                         ]
                     ]),
-                    self::getVATIDField(".dk", "ADMIN"),
+                    self::getVATIDField(".dk", "ADMIN", [
+                        "Required" => [ "Admin Legal Type" => ["ORG"] ],
+                        "Description" => "dktldadminvatiddescr"
+                    ]),
                     self::getContactIdentificationField("", [
                         "Name" => "Admin Contact",
                         "Description" => "dktldcontactdescr",
@@ -157,7 +166,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     self::getIndividualRegulatedTLDField(".es"),
                     self::getLegalTypeField(".es", [
                         "Options" => [
-                            "", "1", "39", "47", "59", "68", "124", "150", "152", "164", "181", "197", "203", "229", "269", "286", "365",
+                            "1", "39", "47", "59", "68", "124", "150", "152", "164", "181", "197", "203", "229", "269", "286", "365",
                             "434", "436", "439", "476", "510", "524", "525", "554", "560", "562", "566", "608", "612", "713", "717", "744",
                             "745", "746", "747", "878", "879", "877"
                         ],
@@ -194,7 +203,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".eu" => [
                     self::getCountryField([
                         "Name" => "Registrant Citizenship",
-                        "Options" => ["", "AT", "BE", "BG", "CZ", "CY", "DE", "DK", "ES", "EE", "FI", "FR", "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SK", "SI", "HR"],
+                        "Options" => ["AT", "BE", "BG", "CZ", "CY", "DE", "DK", "ES", "EE", "FI", "FR", "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SK", "SI", "HR"],
                         "Description" => "eutldregistrantcitizenshipdescr",
                         "Ispapi-Name" => "X-EU-REGISTRANT-CITIZENSHIP"
                     ])
@@ -241,7 +250,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Options" => self::getOptions(".hk", "Registrant Document Type", [
                             "HKID", "OTHID", "PASSNO", "BIRTHCERT", "OTHIDV", "BR", "CI", "CRS", "HKSARG",
                             "HKORDINANCE", "OTHORG"
-                        ]),
+                        ], true),
                         "Description" => "hktldregistrantdocumenttypedescr",
                         "Required" => true,
                         "Ispapi-Name" => "X-HK-REGISTRANT-DOCUMENT-TYPE"
@@ -265,7 +274,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     self::getCountryField([
                         "Name" => "Registrant Document Origin Country",
                         "Required" => true,
-                        "Options" => "ALL",
+                        "Options" => "{CountryCodeMap}",
                         "Ispapi-Name" => "X-HK-REGISTRANT-DOCUMENT-ORIGIN-COUNTRY"
                     ]),
                     [
@@ -484,25 +493,21 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ])
                 ],
                 ".ru" => [
-                    self::getRegulatedTLDField(".ru"),
-                    self::getLegalTypeField(".ru"),
+                    self::getLegalTypeField(".ru", ["Required" => true]),
+                    self::getIndividualRegulatedTLDField(".ru", [
+                        "Required" => [ "Legal Type" => [ "INDIV" ] ]
+                    ]),
                     [
                         'Name'  => 'Registrant Birthday',
-                        "Required" => [
-                            "Legal Type" => [
-                                "INDIV"
-                            ]
-                        ],
+                        "Description" => "rutldregistrantbirthdaydescr",
+                        "Type" => "text",
+                        "Required" => [ "Legal Type" => [ "INDIV" ] ],
                         "Ispapi-Name" => "X-RU-REGISTRANT-BIRTH-DATE"
                     ], [
                         "Name" => "Registrant Passport Data",
                         "Description" => "rutldregistrantpassportdatadescr",
                         "Type" => "text",
-                        "Required" => [
-                            "Legal Type" => [
-                                "INDIV"
-                            ]
-                        ],
+                        "Required" => [ "Legal Type" => [ "INDIV" ] ],
                         "Ispapi-Name" => "X-RU-REGISTRANT-PASSPORT-DATA"
                     ]
                 ],
@@ -552,10 +557,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 // ---------------------- T ---------------------------------
                 ".tel" => [
                     self::getLegalTypeField(".tel", [
-                        "Options" => [
-                            "Natural",
-                            "Legal"
-                        ],
+                        "Options" => [ "Natural", "Legal" ],
                         "Required" => true,
                         "Ispapi-Name" => "X-TEL-WHOISTYPE"
                     ]),
@@ -593,7 +595,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "LangVar" => "nexuscountry",
                         "Description" => "ustldnexuscountrydescr",
                         "Ispapi-Name" => "X-US-NEXUS-VALIDATOR",
-                        "Options" => "ALL",
+                        "Options" => "{CountryCodeMap}",
                         "Required" => [
                             "Nexus Category" => [
                                 "C31",
@@ -602,6 +604,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         ]
                     ])
                 ],
+                // ---------------------- X ---------------------------------
                 ".xxx" => [
                     self::getRegulatedTLDField(".xxx"),
                     self::getYesNoField(".xxx", [
@@ -617,6 +620,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Required" => false
                     ]
                 ],
+                // ---------------------- Z ---------------------------------
                 ".za" => [ self::getHighlyRegulatedTLDField(".za") ],
             ],
             "transfer" => [
@@ -740,6 +744,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     {
         return [
             self::getLegalTypeField("afnic", [//override default whmcs field
+                "Required" => true,
                 "Options" => [ "INDIV", "ORG1", "ORG2", "ORG3", "ORG4", "ASS" ]
             ]),
             [
@@ -833,34 +838,31 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "Required" => false,
             "Ispapi-Name" => "X-" . $contacttype . "-IDTYPE"
         ], $overrides);
-        $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"]);
+        $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"], $f["Required"]);
         $f["Default"] = $f["Options"][0];
         return $f;
     }
 
     public static function getCountryField($overrides)
     {
-        $countries = (new \WHMCS\Utility\Country())->getCountryNameArray();
         $cfg = array_merge([
             "Name" => "Registrant Citizenship",
             "Type" => "dropdown",
             "Required" => false
         ], $overrides);
         $options = [];
-        if ($cfg["Options"]=="ALL") {
-            $cfg["Options"] = [];
-            if ($cfg["Required"]!==true) {//false or conditional requirement
-                $cfg["Options"][] = "";
-            }
-            foreach ($countries as $ccode => $name) {
-                $cfg["Options"][] = ($ccode . "|" . $name);
-            }
+        if ($cfg["Options"]=="{CountryCodeMap}") { // reuse WHMCS placeholder
+            $cfg["Options"] = ["{CountryCodeMap}"];
         } else {
+            $countries = (new \WHMCS\Utility\Country())->getCountryNameArray();
             foreach ($cfg["Options"] as &$val) {
                 if ($val !== "") {
                     $val .= ("|" . (isset($countries[$val]) ? $countries[$val] : $val));
                 }
             }
+        }
+        if ($cfg["Required"]!==true) {//false or conditional requirement
+            array_unshift($cfg["Options"], "");
         }
         $cfg["Default"] = $cfg["Options"][0];
         return $cfg;
@@ -913,7 +915,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "Ispapi-Name" => "X-CORE-INTENDED-USE"
         ], $overrides);
         if ($cfg["Type"] == "dropdown") {
-            $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"]);
+            $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"], $cfg["Required"]);
             $cfg["Default"] = $cfg["Options"][0];
         }
         return $cfg;
@@ -951,7 +953,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "LangVar" => "legaltype"
         ], $overrides);
 
-        $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"]);
+        $f["Options"] = self::getOptions($tld, $f["Name"], $f["Options"], $f["Required"]);
         $f["Default"] = $f["Options"][0];
         return $f;
     }
@@ -966,19 +968,19 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "Options" => [],
             "Ispapi-Name" => "X-" . self::getTLDClass($tld) . "-NEXUS-CATEGORY"
         ], $overrides);
-        $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"]);
+        $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"], $cfg["Required"]);
         $cfg["Default"] = explode(",", $cfg["Options"])[0];
         return $cfg;
     }
 
-    public static function getOptions($tld, $transprefix, $optvals)
+    public static function getOptions($tld, $transprefix, $optvals, $isRequired = false)
     {
         $options = [];
         foreach ($optvals as &$val) {
-            if ($val !== "") {
-                $val .= ("|" . self::$transpfx . self::getTransKey($tld, $transprefix . strtolower($val)));
-            }
-            $options[] = $val;
+            $options[] = ($val . "|" . self::$transpfx . self::getTransKey($tld, $transprefix . strtolower($val)));
+        }
+        if ($isRequired!==true) {//false or conditional requirement
+            array_unshift($options, "");
         }
         return $options;
     }
@@ -1110,9 +1112,9 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "Options" => ["no", "yes"]
         ], $overrides);
         if (!$customlables) {
-            $cfg["Options"] = self::getOptions($tld, "yesno", $cfg["Options"]);
+            $cfg["Options"] = self::getOptions($tld, "yesno", $cfg["Options"], $cfg["Required"]);
         } else {
-            $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"]);
+            $cfg["Options"] = self::getOptions($tld, $cfg["Name"], $cfg["Options"], $cfg["Required"]);
         }
         $cfg["Default"] = $cfg["Options"][0];
         return $cfg;

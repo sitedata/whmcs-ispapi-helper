@@ -6,6 +6,11 @@ Custom additional fields configurations could be applied in the past by keeping 
 
 Target of this documentation is to basically combine the standard [WHMCS Documentation](https://docs.whmcs.com/Additional_Domain_Fields) with the extensions made for the HEXONET/ISPAPI provider module.
 
+## Known Bugs & Support Tickets
+
+* Wrong Dropdown List Entry pre-selected, should be the first one with empty value. [#PHW-648709](https://www.whmcs.com/members/viewticket.php?tid=PHW-648709&c=VtIFzrAa)
+* Dropdown List Entry with `falsy` value is returned as `missing` in submission when field is configured as required field. [#CORE-14277](https://www.whmcs.com/members/viewticket.php?tid=WRJ-298239&c=PtkKH0Ck)
+
 ## Uniqueness of domain fields
 
 The property `Name` in the additional domain fields is used as unique identifier for a field per TLD. Thus specifying it is **MANDATORY**, when you introduce your custom fields or when overriding default field configurations shipped with WHMCS itself.
@@ -220,7 +225,7 @@ Can be used to generate a countries dropdown list field. It uses WHMCS' internal
 ".eu" => [
     self::getCountryField([
         "Name" => "Registrant Citizenship",
-        "Options" => ["", "AT", "BE", /* ... */],
+        "Options" => ["AT", "BE", /* ... */],
         "Description" => "euregistrantcitizenshipdescr",
         "Ispapi-Name" => "X-EU-REGISTRANT-CITIZENSHIP"
     ])
@@ -234,11 +239,13 @@ or to get all possible countries:
     self::getCountryField([
         "Name" => "Registrant Document Origin Country",
         "Required" => true,
-        "Options" => "ALL", // <---- will be replaced accordingly
+        "Options" => "{CountryCodeMap}", // <---- will be replaced accordingly
         "Ispapi-Name" => "X-HK-REGISTRANT-DOCUMENT-ORIGIN-COUNTRY"
     ])
 ],
 ```
+
+NOTE: Configuration field `Required` will lead to get an empty value first entry being auto-added if not `true`.
 
 #### method `getFaxFormField`
 
@@ -426,13 +433,18 @@ more customizing
 
 Can be used to generate the `Options` configuration field in an additional field configuration.
 
-**NOTE:** Not to be used together with the static methods as the static methods call this method internally. As you can see in the Examples, specify `Options` please as simple array in case you use a static method. If you manually configure an additional domain field, use `getOptions` when specifying `Options`. Never mixup both things!
+**NOTE:**
+
+Not to be used together with the static methods as the static methods call this method internally. As you can see in the Examples, specify `Options` please as simple array in case you use a static method. If you manually configure an additional domain field, use `getOptions` when specifying `Options`. Never mixup both things!
+
+This method also auto-adds an empty value option in case `$isRequired` Parameter is not `true`.
 
 ##### Input Parameters
 
 * $tld: dotted domain extension format e.g. ".broker"
 * $transprefix: translation prefix, suggestion: use the `Name` field value for this
 * $optvals: array of option values. Do not provide anything else than the values, we care about the option labels / translations.
+* $isRequred: forward your configuration setting of `Required` field here. Auto-adds an empty value option in case `$isRequired` Parameter is not `true`.
 
 ##### Return Value
 
