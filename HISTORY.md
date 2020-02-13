@@ -1,3 +1,10 @@
+## [2.7.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.7.0...v2.7.1) (2020-02-13)
+
+
+### Bug Fixes
+
+* **additional fields:** review .ES fields (plus workaround for #CORE-14277) ([41062da](https://github.com/hexonet/whmcs-ispapi-helper/commit/41062dab7512a5a543390fa523dae11d7933791e)), closes [#CORE-14277](https://github.com/hexonet/whmcs-ispapi-helper/issues/CORE-14277)
+
 # [2.7.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.6.1...v2.7.0) (2020-02-12)
 
 
