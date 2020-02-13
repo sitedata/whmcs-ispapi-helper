@@ -163,21 +163,22 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 // ---------------------- E ---------------------------------
                 ".eco" => [ self::getHighlyRegulatedTLDField(".eco") ],
                 ".es" => [
-                    self::getIndividualRegulatedTLDField(".es"),
                     self::getLegalTypeField(".es", [
+                        "Name" => "Registrant Legal Type",
                         "Options" => [
                             "1", "39", "47", "59", "68", "124", "150", "152", "164", "181", "197", "203", "229", "269", "286", "365",
                             "434", "436", "439", "476", "510", "524", "525", "554", "560", "562", "566", "608", "612", "713", "717", "744",
                             "745", "746", "747", "878", "879", "877"
                         ],
-                        "Required" => false,
+                        "Required" => true,
                         "Ispapi-Name" => "X-ES-REGISTRANT-FORM-JURIDICA"
                     ]),
+                    self::getIndividualRegulatedTLDField(".es", ["Required" => ["Legal Type" => "1"]]),//only for registrant of type individual
                     self::getContactTypeField(".es", "REGISTRANT", [
                         "Name" => "Registrant Type",
                         "LangVar" => "estldregistranttype",
                         "Options" => [ "0", "1", "3" ],
-                        // don't set it to required as 0 doesn't go through
+                        // don't set it to required as 0 doesn't go through #CORE-14277
                         "Ispapi-Name" => "X-ES-REGISTRANT-TIPO-IDENTIFICACION"
                     ]),
                     self::getContactIdentificationField("REGISTRANT", [
@@ -190,7 +191,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "Admin Type",
                         "LangVar" => "estldadmintype",
                         "Options" => [ "0", "1", "3" ],
-                        // don't set it to required as 0 doesn't go through
+                        // don't set it to required as 0 doesn't go through #CORE-14277
                         "Ispapi-Name" => "X-ES-REGISTRANT-TIPO-IDENTIFICACION"
                     ]),
                     self::getContactIdentificationField("ADMIN", [
@@ -980,7 +981,9 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             $options[] = ($val . "|" . self::$transpfx . self::getTransKey($tld, $transprefix . strtolower($val)));
         }
         if ($isRequired!==true) {//false or conditional requirement
-            array_unshift($options, "");
+            if ($tld !== ".es") { // #CORE-14277, set Option to required when fixed
+                array_unshift($options, "");
+            }
         }
         return $options;
     }
