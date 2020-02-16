@@ -11,11 +11,22 @@ Target of this documentation is to basically combine the standard [WHMCS Documen
 * Wrong Dropdown List Entry pre-selected, should be the first one with empty value. [#PHW-648709](https://www.whmcs.com/members/viewticket.php?tid=PHW-648709&c=VtIFzrAa)
 * Dropdown List Entry with `falsy` value is returned as `missing` in submission when field is configured as required field. [#CORE-14277](https://www.whmcs.com/members/viewticket.php?tid=WRJ-298239&c=PtkKH0Ck)
 
-## Uniqueness of domain fields
+## Features of our implementation
 
-The property `Name` in the additional domain fields is used as unique identifier for a field per TLD. Thus specifying it is **MANDATORY**, when you introduce your custom fields or when overriding default field configurations shipped with WHMCS itself.
-
-NOTE: **NEVER** apply translations by translating the `Name` field directly. WHMCS / our registrar module provides mechanisms for that. Please refer to the [translation guide](#translating-additional-domain-fields) instead.
+* Standardized way
+* Shipped directly with the registrar module
+* No manual effort with additional domain fields
+* Auto-Cleanup of WHMCS built-in additional domain fields
+* Still, our solution is overridable
+* Auto-Generate Translation keys out of configuration if not provided
+* 100% translation support (covering Name, Options, Description): english, german, french
+* Changes can be rolled out in short through a new release
+* County Name to County Code mapped Dropdown Lists can be realized in ease
+* Localized Language Name to Language Code mapped Dropdown Lists can be realized in ease
+* Auto-add empty valued option in case dropdown list is configured to be optional
+* Auto-add Fax Form fields
+* Configure Options in array notation for better readability
+* Support of Conditional Requirements, but compatible with WHMCS < 7.9 (we require >=7.8!)
 
 ## Activate OUR default additional fields configuration
 
@@ -24,6 +35,12 @@ If you have already the OVERRIDEFILE file in use, please remove the entire file 
 If you have there also TLD configurations for other registrars, be so kind to just cleanup TLD configurations affecting TLDs offered over us.
 
 **NOTE:** We have **no** Local Presence Service activated by default. Please have a further read [here](#local-presence-trustee-service).
+
+## Uniqueness of domain fields
+
+The property `Name` in the additional domain fields is used as unique field identifier per TLD. Thus specifying it is **MANDATORY**, when you introduce your custom fields or when overriding default field configurations shipped with WHMCS itself.
+
+NOTE: **NEVER** apply translations by translating the `Name` field directly. WHMCS / our registrar module provides mechanisms for that. Please refer to the [translation guide](#translating-additional-domain-fields) instead.
 
 ## Customizing additional domain fields
 
@@ -246,22 +263,6 @@ or to get all possible countries:
 ```
 
 NOTE: Configuration field `Required` will lead to get an empty value first entry being auto-added if not `true`.
-
-#### method `getFaxFormField`
-
-Can be used to generate an agreement field pointing to our form generator frontend to point to required documents for the appropriate process (registration, transfer, ...). Ensure to configure the request url in method `getTAC` for your TLD. An URL can be made system entity dependent, by using static variable `self::$isOTE` which is true in case of OT&E System or false in case of Live System being configured in registrar module as API communication endpoint.
-
-##### Return Value
-
-* domain field configuration array
-
-##### Example
-
-```php
-".no" => [
-    self::getFaxFormField()
-],
-```
 
 #### method `getHighlyRegulatedTLDField`
 

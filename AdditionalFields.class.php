@@ -7,6 +7,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     public static $transpfx = "hxflags"; // translation key prefix
     public static $isOTE = false;
     public static $entity = "LIVE";
+    public static $domainStatus = null;
     public static $additionalfieldscfg = [
         "OTE"=>null,
         "LIVE"=>null
@@ -64,7 +65,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Options" => ["EN", "FR"],
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LANGUAGE"
-                    ])
+                    ]),
+                    [
+                        "Name" => "Registry Information",
+                        "Description" => "catldregistryinformationdescr"
+                    ]
                 ],
                 ".cfd" => [ self::getHighlyRegulatedTLDField(".cfd") ],
                 ".cn" => [
@@ -224,7 +229,67 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ]
                 ],
                 ".forex" => [ self::getHighlyRegulatedTLDField(".forex") ],
-                ".fr" => self::getAFNICFields(),
+                ".fr" => [
+                    self::getLegalTypeField("afnic", [//override default whmcs field
+                        "Required" => true,
+                        "Options" => [ "INDIV", "ORG1", "ORG2", "ORG3", "ORG4", "ASS" ]
+                    ]),
+                    [
+                        "Name" => "VATID or SIREN/SIRET number",
+                        "LangVar" => "afnictldvatid",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-LEGAL-ID",
+                        "Required" => [ "Legal Type" => [ "ORG1" ] ],
+                        "Description" => "afnictldvatiddescr"
+                    ],[//override default whmcs field
+                        "Name" => "Trademark Number",
+                        "LangVar" => "afnictldtrademark",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-TRADEMARK-NUMBER",
+                        "Required" => [ "Legal Type" => [ "ORG2" ] ],
+                        "Description" => "afnictldtrademarkdescr"
+                    ],[//override default whmcs field
+                        "Name" => "DUNS Number",
+                        "LangVar" => "afnictldduns",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-DUNS-NUMBER",
+                        "Required" => [ "Legal Type" => [ "ORG3" ] ],
+                        "Description" => "afnictlddunsdescr"
+                    ],[
+                        "Name" => "Local ID",
+                        "LangVar" => "afnictldlocalid",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-LOCAL-ID",
+                        "Required" => [ "Legal Type" => [ "ORG4" ] ],
+                        "Description" => "afnictldlocaliddescr"
+                    ],[
+                        "Name" => "Date of Declaration [JO]",
+                        "LangVar" => "afnictldjodod",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-JO-DATE-DECLARATION",
+                        "Required" => [ "Legal Type" => [ "ASS" ] ],
+                        "Description" => "afnictldjododdescr"
+                    ],[
+                        "Name" => "Number [JO]",
+                        "LangVar" => "afnictldjonumber",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-JO-NUMBER",
+                        "Required" => [ "Legal Type" => [ "ASS" ] ],
+                        "Description" => "afnictldjonumberdescr"
+                    ],[
+                        "Name" => "Page of Announcement [JO]",
+                        "LangVar" => "afnictldjopage",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-JO-PAGE",
+                        "Required" => [ "Legal Type" => [ "ASS" ] ],
+                        "Description" => "afnictldjopagedescr"
+                    ],[
+                        "Name" => "Date of Publication [JO]",
+                        "LangVar" => "afnictldjodop",
+                        "Type" => "text",
+                        "Ispapi-Name" => "X-FR-REGISTRANT-JO-DATE-PUBLICATION",
+                        "Required" => [ "Legal Type" => [ "ASS" ] ],
+                        "Description" => "afnictldjodopdescr"
+                    ]
+                ],
                 // ---------------------- G ---------------------------------
                 ".gay" => [
                     self::getHighlyRegulatedTLDField(".gay", [
@@ -348,7 +413,18 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "PIN",
                         "Type" => "text",
                         "Ispapi-Name" => "X-IT-PIN"
-                    ]
+                    ],
+                    self::getCountryField([
+                        "Name" => "Registrant Nationality",
+                        "Description" => "ittldregistrantnationalitydescr",
+                        "Options" => "{CountryCodeMap}",
+                        "Ispapi-Name" => "X-IT-NATIONALITY"
+                    ]),
+                    self::getLegalTypeField(".it", [
+                        "Name" => "Registrant Legal Type",
+                        "Options" => [ "1", "2", "3", "4", "5", "6", "7" ],
+                        "Ispapi-Name" => "X-IT-REGISTRANT-ENTITY-TYPE"
+                    ])
                 ],
                 // ---------------------- J ---------------------------------
                 ".jobs" => [
@@ -453,8 +529,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".no" => [
                     self::getRegistrantIdentificationField(".no", [
                         "Ispapi-Name" => "X-NO-REGISTRANT-IDENTITY"
-                    ]),
-                    self::getFaxFormField()
+                    ])
                 ],
                 ".nu" => [
                     self::getRegulatedTLDField(".nu"),
@@ -622,18 +697,21 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ]
                 ],
                 // ---------------------- Z ---------------------------------
-                ".za" => [ self::getHighlyRegulatedTLDField(".za") ],
+                ".org.za" => [ self::getHighlyRegulatedTLDField(".za") ],
             ],
-            "transfer" => [
+            "transfer" => [//TODO review
                 ".ca" => [
-                    self::getLegalTypeField([
+                    self::getLegalTypeField(".ca", [
                         "Options" => [
-                            "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM",
-                            "TRD", "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
+                            "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM", "TRD",
+                            "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
                         ],
+                        "Description" => "",
+                        "Required" => true,
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
-                    ])
+                    ]),
                 ],
+                ".cat" => [self::getHighlyRegulatedTLDField(".cat")],
                 ".it" => [
                     [
                         "Name" => "PIN",
@@ -649,28 +727,24 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Ispapi-Name" => "X-PT-ROID"
                     ]
                 ]
+            ],
+            "trade" => [
+                ".pt" => [
+                    self::getVATIDField(".pt", "REGISTRANT", [
+                        'Required' => false,
+                        "Ispapi-Name" => "X-PT-REGISTRANT-VATID"
+                    ])
+                ],
+                ".swiss" => [
+                    [
+                        "Name" => "Registrant Enterprise ID",
+                        "Description" => "swisstldregistrantenterpriseiddescr",
+                        "Default" => "CHE",
+                        "Ispapi-Name" => "X-SWISS-REGISTRANT-ENTERPRISE-ID"
+                    ]
+                ]
             ]
         ];
-        // matching configuration for tlds
-        self::$additionalfieldscfg[self::$entity]["register"][".asn.au"] = self::$additionalfieldscfg[self::$entity]["register"][".com.au"];
-        self::$additionalfieldscfg[self::$entity]["register"][".id.au"] = self::$additionalfieldscfg[self::$entity]["register"][".com.au"];
-        self::$additionalfieldscfg[self::$entity]["register"][".net.au"] = self::$additionalfieldscfg[self::$entity]["register"][".net.au"];
-        self::$additionalfieldscfg[self::$entity]["register"][".org.au"] = self::$additionalfieldscfg[self::$entity]["register"][".net.au"];
-        self::$additionalfieldscfg[self::$entity]["register"][".pm"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
-        self::$additionalfieldscfg[self::$entity]["register"][".re"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
-        self::$additionalfieldscfg[self::$entity]["register"][".tf"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
-        self::$additionalfieldscfg[self::$entity]["register"][".wf"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
-        self::$additionalfieldscfg[self::$entity]["register"][".yt"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
-        self::$additionalfieldscfg[self::$entity]["register"][".рф"] = self::$additionalfieldscfg[self::$entity]["register"][".ru"];
-        self::$additionalfieldscfg[self::$entity]["register"][".香港"] = self::$additionalfieldscfg[self::$entity]["register"][".hk"];
-
-        // matching configuration for type register and transfer
-        foreach ([
-            ".abogado", ".ae", ".attorney", ".broker", ".cfd", ".de", ".dentist", ".eco", ".eu", ".forex", ".health",
-            ".law", ".lawyer", ".lt", ".makeup", ".nu", ".ro", ".sg", ".spreadbetting", ".trading", ".us"
-        ] as $tld) {
-            self::$additionalfieldscfg[self::$entity]["transfer"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
-        }
 
         // add translation support in case no generic LangVar field got configured
         foreach (self::$additionalfieldscfg[self::$entity] as $type => &$tlds) {
@@ -686,6 +760,64 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     if (!empty($f["Description"])) {// add translation prefix
                         $f["Description"] = self::$transpfx . $f["Description"];
                     }
+                }
+            }
+        }
+
+        // matching configuration for type register
+        self::$additionalfieldscfg[self::$entity]["register"][".asn.au"] = self::$additionalfieldscfg[self::$entity]["register"][".com.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".id.au"] = self::$additionalfieldscfg[self::$entity]["register"][".com.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".net.au"] = self::$additionalfieldscfg[self::$entity]["register"][".net.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".org.au"] = self::$additionalfieldscfg[self::$entity]["register"][".net.au"];
+        self::$additionalfieldscfg[self::$entity]["register"][".pm"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".re"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".tf"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".wf"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".yt"] = self::$additionalfieldscfg[self::$entity]["register"][".fr"];
+        self::$additionalfieldscfg[self::$entity]["register"][".рф"] = self::$additionalfieldscfg[self::$entity]["register"][".ru"];
+        self::$additionalfieldscfg[self::$entity]["register"][".香港"] = self::$additionalfieldscfg[self::$entity]["register"][".hk"];
+        self::$additionalfieldscfg[self::$entity]["register"][".net.za"] = self::$additionalfieldscfg[self::$entity]["register"][".org.za"];
+
+        // map configuration transfer/trade <- register
+        foreach ([
+            ".abogado", ".ae", ".attorney", ".broker", ".cfd", ".dentist", ".eco", ".eu", ".forex", ".health",
+            ".law", ".lawyer", ".lt", ".makeup", ".markets", ".nu", ".ro", ".sg", ".spreadbetting", ".trading", ".us"
+        ] as $tld) {
+            self::$additionalfieldscfg[self::$entity]["transfer"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
+            self::$additionalfieldscfg[self::$entity]["trade"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
+        }
+
+        // mapp configuration transfer <- register
+        foreach ([ ".de", ".nu", ".ro", ".sg", ".spreadbetting" ] as $tld) {
+            self::$additionalfieldscfg[self::$entity]["transfer"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
+        }
+
+        // mapp configuration trade <- transfer
+        foreach ([ ".ca", ".cat" ] as $tld) {
+            self::$additionalfieldscfg[self::$entity]["trade"][$tld] = self::$additionalfieldscfg[self::$entity]["transfer"][$tld];
+        }
+
+        // mappable configuration trade <- register
+        foreach ([
+            ".com.au", ".asn.au", ".id.au", ".net.au", ".org.au", ".boats", ".es", ".fi", ".film", ".fr", ".pm", ".re", ".tf", ".wf", ".yt",
+            ".hk", ".рф", ".homes", ".ie", ".it", ".mk", ".ngo", ".no", ".nu", ".ru", ".se"
+        ] as $tld) {
+            self::$additionalfieldscfg[self::$entity]["trade"][$tld] = self::$additionalfieldscfg[self::$entity]["register"][$tld];
+        }
+
+        // map ALL configurations update <- register (as for trade, we have something separated)
+        self::$additionalfieldscfg[self::$entity]["update"] = self::$additionalfieldscfg[self::$entity]["register"];
+
+        // auto-add fax form fields
+        foreach (self::$additionalfieldscfg[self::$entity] as $type => &$tlds) {
+            foreach ($tlds as $tldkey => &$fields) {
+                if (self::requiresFaxForm($tldkey, $type)){
+                    $field = self::getFaxFormField($type);
+                    $field["LangVar"] = self::$transpfx . $field["LangVar"];
+                    if (!empty($field["Description"])) {// add translation prefix
+                        $field["Description"] = self::$transpfx . $field["Description"];
+                    }
+                    $fields[] = $field;
                 }
             }
         }
@@ -739,71 +871,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
         //nothing found ...
         return self::translate($tlddotted, [], $params["whmcsVersion"], $params["fields"]);
-    }
-
-    public static function getAFNICFields()
-    {
-        return [
-            self::getLegalTypeField("afnic", [//override default whmcs field
-                "Required" => true,
-                "Options" => [ "INDIV", "ORG1", "ORG2", "ORG3", "ORG4", "ASS" ]
-            ]),
-            [
-                "Name" => "VATID or SIREN/SIRET number",
-                "LangVar" => "afnictldvatid",
-                "Type" => "text",
-                "Ispapi-Name" => "X-FR-REGISTRANT-LEGAL-ID",
-                "Required" => [ "Legal Type" => [ "ORG1" ] ],
-                "Description" => "afnictldvatiddescr"
-            ],[//override default whmcs field
-                "Name" => "Trademark Number",
-                "LangVar" => "afnictldtrademark",
-                "Ispapi-Name" => "X-FR-REGISTRANT-TRADEMARK-NUMBER",
-                "Required" => [ "Legal Type" => [ "ORG2" ] ],
-                "Description" => "afnictldtrademarkdescr"
-            ],[//override default whmcs field
-                "Name" => "DUNS Number",
-                "LangVar" => "afnictldduns",
-                "Ispapi-Name" => "X-FR-REGISTRANT-DUNS-NUMBER",
-                "Required" => [ "Legal Type" => [ "ORG3" ] ],
-                "Description" => "afnictlddunsdescr"
-            ],[
-                "Name" => "Local ID",
-                "LangVar" => "afnictldlocalid",
-                "Type" => "text",
-                "Ispapi-Name" => "X-FR-REGISTRANT-LOCAL-ID",
-                "Required" => [ "Legal Type" => [ "ORG4" ] ],
-                "Description" => "afnictldlocaliddescr"
-            ],[
-                "Name" => "Date of Declaration [JO]",
-                "LangVar" => "afnictldjodod",
-                "Type" => "text",
-                "Ispapi-Name" => "X-FR-REGISTRANT-JO-DATE-DECLARATION",
-                "Required" => [ "Legal Type" => [ "ASS" ] ],
-                "Description" => "afnictldjododdescr"
-            ],[
-                "Name" => "Number [JO]",
-                "LangVar" => "afnictldjonumber",
-                "Type" => "text",
-                "Ispapi-Name" => "X-FR-REGISTRANT-JO-NUMBER",
-                "Required" => [ "Legal Type" => [ "ASS" ] ],
-                "Description" => "afnictldjonumberdescr"
-            ],[
-                "Name" => "Page of Announcement [JO]",
-                "LangVar" => "afnictldjopage",
-                "Type" => "text",
-                "Ispapi-Name" => "X-FR-REGISTRANT-JO-PAGE",
-                "Required" => [ "Legal Type" => [ "ASS" ] ],
-                "Description" => "afnictldjopagedescr"
-            ],[
-                "Name" => "Date of Publication [JO]",
-                "LangVar" => "afnictldjodop",
-                "Type" => "text",
-                "Ispapi-Name" => "X-FR-REGISTRANT-JO-DATE-PUBLICATION",
-                "Required" => [ "Legal Type" => [ "ASS" ] ],
-                "Description" => "afnictldjodopdescr"
-            ]
-        ];
     }
 
     public static function getAllocationTokenField($tld)
@@ -869,13 +936,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
-    public static function getFaxFormField()
+    public static function getFaxFormField($type)
     {
         return [
             "Name" => "Fax required",
             "LangVar" => "fax",
             "Type" => "tickbox",
-            "Description" => "faxdescr",
+            "Description" => "fax" . self::getFaxType($type) . "descr",
             "Default" => "",
             "Required" => true
         ];
@@ -1013,6 +1080,38 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ], $overrides);
     }
 
+    public static function getFaxType($type){
+        if (in_array($type, ["update", "trade"])){
+            return "ownerchange";
+        }
+        if ($type === "register"){
+            return "registration";
+        }
+        return $type;
+    }
+
+    public static function requiresFaxForm($tld, $type){
+        $tld = preg_replace("/^.+\./", "", $tld);
+        $map = [
+            "registration" => [ ".no" ],
+            "transfer" => [ ".nu" ],
+            "ownerchange" => [ ".au", ".no", ".nu", ".pt", ".ru", ".se" ]
+        ];
+        $ftype = self::getFaxType($type);
+        if (isset($map[$ftype]) && in_array($tld, $map[$ftype])){
+            return true;
+        }
+        return false;
+    }
+
+    public static function getFaxURL($tld, $type){
+        return (
+            "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net" . "/form/" .
+            preg_replace("/^.*\./", "", $tld) .
+            "/search?view=" . self::getFaxType($type)
+        );
+    }
+
     public static function getTAC($tld)
     {
         $tac = [
@@ -1021,6 +1120,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".bank" => "https://www.register.bank/get-started/",
             ".boats" => "https://get.boats/policies/",
             ".broker" => "https://nic.broker/",
+            ".ca" => "https://" . (self::$isOTE ? "services.test." : "" ) . "cira.ca/agree",
             ".cat" => "http://domini.cat/en/domini/rules-cat-domain",
             ".cfd" => "https://nic.cfd/",
             ".eco" => "https://home.eco/registrars/policies/",
@@ -1033,11 +1133,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".homes" => "https://domains.homes/Policies/",
             ".id" => "https://pandi.id/regulasi/",
             ".insurance" => "https://www.register.insurance/get-started/",
-            ".it" => "https://www.nic.it/sites/default/files/documenti/2019/Synchronous_Technical_Guidelines_v2.5.pdf",
+            ".it" => "https://www.nic.it/en/manage-your-it/forms-and-docs",
             ".law" => "http://nic.law/eligibilitycriteria/",
             ".markets" => "https://nic.markets/",
             ".ngo" => "https://thenew.org/org-people/about-pir/policies/policies-ngo-ong/",
-            ".no" => "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net/form/no/search?view=registration",
             ".nu" => "https://internetstiftelsen.se/app/uploads/2019/02/terms-and-conditions-nu.pdf",
             ".nyc" => "https://www.ownit.nyc/policies/",
             ".paris" => "http://bienvenue.paris/registry-policies-paris/",
@@ -1132,6 +1231,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 if (preg_match("/####TAC####/", $f["Description"])) {
                     $tac = self::getTAC($tld);
                     $f["Description"] = preg_replace("/####TAC####/", $tac, $f["Description"]);
+                }
+                if (preg_match("/####FAXFORM####/", $f["Description"])) {
+                    $fform = self::getFaxURL($tld, $type);
+                    $f["Description"] = preg_replace("/####FAXFORM####/", $fform, $f["Description"]);
                 }
                 if (preg_match("/####TLD####/", $f["Description"])) {
                     $f["Description"] = preg_replace("/####TLD####/", strtoupper($tld), $f["Description"]);
@@ -1245,5 +1348,26 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             parent::setFieldValues($data);
         }
         return $this;
+    }
+
+    /**
+     * Set the current process type
+     * @param string $type process type
+     */
+    public function setDomainType($type = "register")
+    {
+        $type = strtolower($type);
+        if (!in_array($type, ["register", "transfer", "update", "trade"])) {
+            $type = "register";
+        }
+        $this->domainType = $type;
+        return $this;
+    }
+
+    /**
+     * Set current domain status (StatusDomain)
+     */
+    public static function setDomainStatus($data){
+        self::$domainStatus = $data;
     }
 }
