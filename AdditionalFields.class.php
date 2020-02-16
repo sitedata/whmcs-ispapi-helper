@@ -811,7 +811,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         // auto-add fax form fields
         foreach (self::$additionalfieldscfg[self::$entity] as $type => &$tlds) {
             foreach ($tlds as $tldkey => &$fields) {
-                if (self::requiresFaxForm($tldkey, $type)){
+                if (self::requiresFaxForm($tldkey, $type)) {
                     $field = self::getFaxFormField($type);
                     $field["LangVar"] = self::$transpfx . $field["LangVar"];
                     if (!empty($field["Description"])) {// add translation prefix
@@ -1080,17 +1080,19 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ], $overrides);
     }
 
-    public static function getFaxType($type){
-        if (in_array($type, ["update", "trade"])){
+    public static function getFaxType($type)
+    {
+        if (in_array($type, ["update", "trade"])) {
             return "ownerchange";
         }
-        if ($type === "register"){
+        if ($type === "register") {
             return "registration";
         }
         return $type;
     }
 
-    public static function requiresFaxForm($tld, $type){
+    public static function requiresFaxForm($tld, $type)
+    {
         $tld = preg_replace("/^.+\./", "", $tld);
         $map = [
             "registration" => [ ".no" ],
@@ -1098,13 +1100,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "ownerchange" => [ ".au", ".no", ".nu", ".pt", ".ru", ".se" ]
         ];
         $ftype = self::getFaxType($type);
-        if (isset($map[$ftype]) && in_array($tld, $map[$ftype])){
+        if (isset($map[$ftype]) && in_array($tld, $map[$ftype])) {
             return true;
         }
         return false;
     }
 
-    public static function getFaxURL($tld, $type){
+    public static function getFaxURL($tld, $type)
+    {
         return (
             "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net" . "/form/" .
             preg_replace("/^.*\./", "", $tld) .
@@ -1367,7 +1370,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     /**
      * Set current domain status (StatusDomain)
      */
-    public static function setDomainStatus($data){
+    public static function setDomainStatus($data)
+    {
         self::$domainStatus = $data;
     }
 }
