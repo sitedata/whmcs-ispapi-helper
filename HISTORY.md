@@ -1,3 +1,10 @@
+# [2.8.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.7.1...v2.8.0) (2020-02-16)
+
+
+### Features
+
+* **additional fields:** fax form fields; reviewed docs ([336d0cf](https://github.com/hexonet/whmcs-ispapi-helper/commit/336d0cf30531dc6e7aed91b39b10f35c912abbb1))
+
 ## [2.7.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.7.0...v2.7.1) (2020-02-13)
 
 
