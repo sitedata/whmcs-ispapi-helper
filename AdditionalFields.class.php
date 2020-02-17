@@ -2,17 +2,45 @@
 
 namespace ISPAPI;
 
+/**
+ * AdditionalFields class
+ *
+ * Covering anything useful we need to better support additional domain fields in WHMCS
+ * inherits from \WHMCS\Domains\AdditionalFields to allow access to WHMCS internals for reuse
+ */
 class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 {
-    public static $transpfx = "hxflags"; // translation key prefix
+    /**
+     * translation key prefix
+     * @static
+     */
+    public static $transpfx = "hxflags";
+    /**
+     * boolean flag: is OT&E system connection
+     * @static
+     */
     public static $isOTE = false;
+    /**
+     * system entity id (OTE / LIVE). Used as part transition key
+     * @static
+     */
     public static $entity = "LIVE";
-    public static $domainStatus = null;
+    /**
+     * additional fields configuration split into system entity parts
+     * next depth will be the process type and then the domain extension
+     * @static
+     */
     public static $additionalfieldscfg = [
         "OTE"=>null,
         "LIVE"=>null
     ];
 
+    /**
+     * Method to initiate the class, entry point for `ispapi_AdditionalDomainFields`
+     *
+     * Initiates the additional domain fields configuration
+     * @static
+     */
     public static function init($isOTE)
     {
         self::$isOTE = $isOTE;
@@ -38,7 +66,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ],
                 ".attorney" => [ self::getHighlyRegulatedTLDField(".attorney") ],//NOTAC
                 // ---------------------- B ---------------------------------
-                ".bank" => [self::getAllocationTokenField(".bank")],
+                ".bank" => [self::getAllocationTokenField()],
                 ".barcelona" => [self::getIntendedUseField()],
                 ".boats" => [ self::getHighlyRegulatedTLDField(".boats") ],
                 ".broker" => [ self::getHighlyRegulatedTLDField(".broker") ],
@@ -386,7 +414,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Required" =>  ["Registrant Class" => ["Company"]]
                     ])
                 ],
-                ".insurance" => [self::getAllocationTokenField(".insurance")],
+                ".insurance" => [self::getAllocationTokenField()],
                 ".it" => [
                     self::getRegulatedTLDField(".it", [//reuse default whmcs field
                         "Name" => "Accept Section 3 of .IT registrar contract",
@@ -823,6 +851,16 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
     }
 
+    /**
+     * Method to dynamically add additional fields to the API command
+     *
+     * Auto-detects the API parameter name and applies the appropriate POST value
+     * The provided command will be updated by reference.
+     * @static
+     * @param array $params common module parameters
+     * @see https://developers.whmcs.com/domain-registrars/module-parameters/
+     * @param array $command the API command to update
+     */
     public static function addToCMD($params, &$command)
     {
         //TODO cleanup when _AdditionalDomainFields has $params["type"] fixed
@@ -836,25 +874,40 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ->addToCommand($command);
     }
 
-    public static function cleanSuffix($name)
+    /**
+     * Method to generate a clean translation key suffix
+     * @static
+     * @param string $name suffix to cleanup
+     * @return string
+     */
+    public static function cleanTranslationSuffix($name)
     {
         return preg_replace("/[^a-z0-9]/i", "", $name);
     }
 
+    /**
+     * Method to return list of additional fields for the given parameter data
+     *
+     * Keeps generated configuration as TransientData. This will improve performance when fields can be requested from API.
+     * @static
+     * @param array $params common module parameters
+     * @see https://developers.whmcs.com/domain-registrars/module-parameters/
+     * @return array
+     */
     public static function getAdditionalDomainFields(array $params)
     {
         $tld = $params["tld"];
         $type = $params["type"];
     
         $transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
-        //$fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
-        //if ($fields) {
-        //    $fields = json_decode($fields, true);
-        //    if (isset($fields) && is_array($fields)) {
-        //        return self::translate($tld, $fields, $params["whmcsVersion"], $params["fields"]);
-        //    }
-        //}
-        // check if a configuration exists for the given order type (register/transfer)
+        $fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
+        if ($fields) {
+            $fields = json_decode($fields, true);
+            if (isset($fields) && is_array($fields)) {
+                return self::translate($tld, $fields, $params["whmcsVersion"], $params["fields"]);
+            }
+        }
+        // check if a configuration exists for the given order type (register/transfer/trade/update)
         $cfg = self::$additionalfieldscfg[self::$entity];
         if (!is_null($cfg) && isset($cfg[$type])) {
             // check if a configuration exists for the given tld
@@ -874,7 +927,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return self::translate($tlddotted, [], $params["whmcsVersion"], $params["fields"]);
     }
 
-    public static function getAllocationTokenField($tld)
+    /**
+     * Method to generate a generic `Allocation Token` field
+     * @static
+     * @return array
+     */
+    public static function getAllocationTokenField()
     {
         return [
             "Name" => "Registry's Allocation Token",
@@ -886,6 +944,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ];
     }
 
+    /**
+     * Method to generate a generic contact-type related identification field
+     * @static
+     * @param string $contacttype contact type (REGISTRANT, ADMIN, TECH, BILLING)
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getContactIdentificationField($contacttype, $overrides = [])
     {
         return array_merge([
@@ -897,6 +962,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ], $overrides);
     }
 
+    /**
+     * Method to generate a generic contact type dropdown list field
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param string $contacttype contact type (REGISTRANT, ADMIN, TECH, BILLING)
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getContactTypeField($tld, $contacttype, $overrides = [])
     {
         $f = array_merge([
@@ -912,6 +985,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $f;
     }
 
+    /**
+     * Method to generate a generic country dropdown list field
+     *
+     * Displays the country name und submits the assigned 2-char country code
+     * @static
+     * @param array $overrides array to override defaults for reuse
+     * @return array
+     */
     public static function getCountryField($overrides)
     {
         $cfg = array_merge([
@@ -937,6 +1018,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
+    /**
+     * Generate a generic fax form agreement field
+     * @static
+     * @param string $type process type (register/transfer/ownerchange)
+     * @return array
+     */
     public static function getFaxFormField($type)
     {
         return [
@@ -949,6 +1036,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ];
     }
 
+    /**
+     * Generate a generic agreement field for higly regulated domain extensions
+     * @static
+     * @param string $tld dotted domain name extension
+     * @return array
+     */
     public static function getHighlyRegulatedTLDField($tld)
     {
         return [
@@ -961,6 +1054,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ];
     }
 
+    /**
+     * Generate a generic agreement field for individual regulated domain extensions
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getIndividualRegulatedTLDField($tld, $overrides = [])
     {
         return [
@@ -974,6 +1074,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ];
     }
 
+    /**
+     * Generate a generic `Intended Use` field
+     * @static
+     * @param string $tld dotted domain name extension (optional)
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getIntendedUseField($tld = "", $overrides = [])
     {
         $cfg = array_merge([
@@ -990,6 +1097,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
+    /**
+     * Generate a generic Language dropdown list
+     *
+     * Display the localized language name and submits the assigned 2-char language code
+     * @static
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getLanguageField($overrides = [])
     {
         $langs = [];
@@ -1013,6 +1128,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
+    /**
+     * Generate a generic `Legal Type` field
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $overrides array to override defaults for resue (optional)
+     * @return array
+     */
     public static function getLegalTypeField($tld, $overrides = [])
     {
         $f = array_merge([
@@ -1027,6 +1149,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $f;
     }
 
+    /**
+     * Generate a generic `Nexus Category` dropdown list field
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getNexusCategoryField($tld, $overrides = [])
     {
         $cfg = array_merge([
@@ -1042,6 +1171,15 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
+    /**
+     * Generate the `Options` configuration part
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param string $transprefix translation key prefix
+     * @param array $optvals array with option values
+     * @param bool $isRequired flag if this field is required
+     * @return array
+     */
     public static function getOptions($tld, $transprefix, $optvals, $isRequired = false)
     {
         $options = [];
@@ -1056,6 +1194,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $options;
     }
 
+    /**
+     * Generate a generic `Registrant Identification Number` field
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getRegistrantIdentificationField($tld, $overrides = [])
     {
         $tclass = self::getTLDClass($tld);
@@ -1069,6 +1214,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         );
     }
 
+    /**
+     * Generate a generic agreement field for regulated domain name extensions
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @param string $descrid additional suffix for translation key (optional)
+     * @return array
+     */
     public static function getRegulatedTLDField($tld, $overrides = [], $descrid = "")
     {
         return array_merge([
@@ -1081,6 +1234,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ], $overrides);
     }
 
+    /**
+     * Return the fax type (mapping of whmcs internal type to our fax type)
+     * @static
+     * @param string $type process type
+     * @return string
+     */
     public static function getFaxType($type)
     {
         if (in_array($type, ["update", "trade"])) {
@@ -1092,6 +1251,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $type;
     }
 
+    /**
+     * Checks if fax form confirmation is necessary
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param string $type process type
+     * @return bool
+     */
     public static function requiresFaxForm($tld, $type)
     {
         $tld = preg_replace("/^.+\./", "", $tld);
@@ -1107,7 +1273,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return false;
     }
 
-    public static function getFaxURL($tld, $type, $domain = false)
+    /**
+     * get fax form url (FFORM project)
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param \WHMCS\Domains\Domain $domain domain object (optional)
+     * @return string
+     */
+    public static function getFaxURL($tld, $type, $domain = null)
     {
         $base = "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net" . "/form/";
         if (!$domain) {
@@ -1116,6 +1289,12 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return ($base . $domain->getLastTLDSegment() . "?type=" . self::getFaxType($type) . "&domain=" . $domain->getDomain() . "&language=en");
     }
 
+    /**
+     * Get Terms & Conditions URL
+     * @static
+     * @param string $tld dotted domain name extension
+     * @return string
+     */
     public static function getTAC($tld)
     {
         $tac = [
@@ -1154,6 +1333,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return isset($tac[$tld]) ? $tac[$tld] : "#";
     }
 
+    /**
+     * Get translation key for terms & conditions field's `Description`
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param string $type regulation type (REGULATED, INDIVIDUALREGULATED, HIGHLYREGULATED) (optional)
+     * @param string $descrid additional translation key suffix in case you need more than one TaC field per tld (optional)
+     * @return string
+     */
     public static function getTACDescription($tld, $type = "REGULATED", $descrid = false)
     {
         $tac = self::getTAC($tld);
@@ -1177,7 +1364,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ]
             ]
         ];
-
         if (isset($map[$type][$tld])) {
             if ($descrid && isset($map[$type][$tld][$descrid])) {
                 return $map[$type][$tld][$descrid];
@@ -1190,16 +1376,37 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $map[$type]["default"];
     }
 
+    /**
+     * Get domain name extension class name
+     * @static
+     * @param string $tld dotted domain name extension
+     * @return string
+     */
     public static function getTLDClass($tld)
     {
         return strtoupper(preg_replace("/\./", "", $tld, 1));
     }
 
+    /**
+     * Get a generic translation key
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param string $suffix translation key suffix
+     * @return string
+     */
     public static function getTransKey($tld, $suffix)
     {
-        return strtolower(str_replace(".", "", $tld) . "tld" . self::cleanSuffix($suffix));
+        return strtolower(str_replace(".", "", $tld) . "tld" . self::cleanTranslationSuffix($suffix));
     }
 
+    /**
+     * Generate a generic contact-type related `VAT ID` input field
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param string $contacttype contact type (REGISTRANT, ADMIN, TECH, BILLING)
+     * @param array $overrides array to override defaults for reuse (optional)
+     * @return array
+     */
     public static function getVATIDField($tld, $contacttype, $overrides = [])
     {
         return array_merge([
@@ -1211,6 +1418,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         ], $overrides);
     }
 
+    /**
+     * Generate a generic dropdown list field for acceptance by `Yes` / `No`
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $overrides array to override defaults for reuse (optional)
+     *
+     */
     public static function getYesNoField($tld, $overrides = [], $customlables = false)
     {
         $cfg = array_merge([
@@ -1226,6 +1440,18 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $cfg;
     }
 
+    /**
+     * Translate our format into WHMCS expected format
+     *
+     * Replaces translation keys with translations, Placeholders with data and aligns the format to WHMCS.
+     * Cares about making Conditional Requirements compatible with 7.8 and disabling default WHMCS domain fields not in use.
+     * @static
+     * @param string $tld dotted domain name extension
+     * @param array $fields our generated field configurations for the given extension
+     * @param string $whmcsVersion WHMCS Version String
+     * @param array $defaultfields WHMCS default field configurations
+     * @return array
+     */
     public static function translate($tld, $fields, $whmcsVersion, $defaultfields)
     {
         foreach ($fields as &$f) {
@@ -1288,6 +1514,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 
 
     /**
+     * Add additional field values to the API command by appropriate parameter names (`Ispapi-Name`)
      * @param array $command API command to add additional domain field parameters to
      */
     public function addToCommand(&$command)
@@ -1356,6 +1583,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 
     /**
      * Set the current process type
+     *
+     * Note: to be used before calling setTLD or setDomain methods
      * @param string $type process type
      */
     public function setDomainType($type = "register")
