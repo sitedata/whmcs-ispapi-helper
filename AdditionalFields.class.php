@@ -829,8 +829,9 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $params = injectDomainObjectIfNecessary($params);
         $type = isset($params["type"]) ? $params["type"] : "register";
 
-        (new self())->setDomain($params["domainObj"]->getDomain())
+        (new self())
                 ->setDomainType($type)
+                ->setDomain($params["domainObj"]->getDomain())
                 ->setFieldValues($params["additionalfields"])
                 ->addToCommand($command);
     }
@@ -1365,13 +1366,5 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
         $this->domainType = $type;
         return $this;
-    }
-
-    /**
-     * Set current domain status (StatusDomain)
-     */
-    public static function setDomainStatus($data)
-    {
-        self::$domainStatus = $data;
     }
 }
