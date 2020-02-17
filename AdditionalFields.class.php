@@ -1106,13 +1106,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return false;
     }
 
-    public static function getFaxURL($tld, $type)
+    public static function getFaxURL($tld, $type, $domain = false)
     {
-        return (
-            "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net" . "/form/" .
-            preg_replace("/^.*\./", "", $tld) .
-            "/search?view=" . self::getFaxType($type)
-        );
+        $base = "https://www" . (self::$isOTE ? "-ote" : "" ) . ".domainform.net" . "/form/";
+        if (!$domain) {
+            return ( $base . preg_replace("/^.*\./", "", $tld) . "/search?view=" . self::getFaxType($type) );
+        }
+        return ($base . $domain->getLastTLDSegment() . "?type=" . self::getFaxType($type) . "&domain=" . $domain->getDomain() . "&language=en");
     }
 
     public static function getTAC($tld)
