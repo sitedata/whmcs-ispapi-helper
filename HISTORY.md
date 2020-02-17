@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.8.0...v2.9.0) (2020-02-17)
+
+
+### Features
+
+* **additional fields:** extend getFaxUrl for direct access to the pdf form if domain provided ([a35dc39](https://github.com/hexonet/whmcs-ispapi-helper/commit/a35dc395aa94027ee57c448444cff37a962c8005))
+
 # [2.8.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.7.1...v2.8.0) (2020-02-16)
 
 
