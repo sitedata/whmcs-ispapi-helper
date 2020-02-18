@@ -1,3 +1,10 @@
+# [2.10.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.9.2...v2.10.0) (2020-02-18)
+
+
+### Features
+
+* **additional fields:** review translation of country/lang list and usage of placeholders ([5075b4e](https://github.com/hexonet/whmcs-ispapi-helper/commit/5075b4e3f0ba8eb2310a871cdacebba837c4da9f))
+
 ## [2.9.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.9.1...v2.9.2) (2020-02-18)
 
 
