@@ -904,7 +904,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         if ($fields) {
             $fields = json_decode($fields, true);
             if (isset($fields) && is_array($fields)) {
-                return self::translate($tld, $fields, $params["whmcsVersion"], $params["fields"]);
+                return self::translate($tld, $fields, $params["whmcsVersion"], $params["fields"], $type);
             }
         }
         // check if a configuration exists for the given order type (register/transfer/trade/update)
@@ -914,17 +914,17 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             $tlddotted = "." . $tld;
             if (isset($cfg[$type][$tlddotted])) {
                 \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tlddotted]), 86400 * 30);
-                return self::translate($tlddotted, $cfg[$type][$tlddotted], $params["whmcsVersion"], $params["fields"]);
+                return self::translate($tlddotted, $cfg[$type][$tlddotted], $params["whmcsVersion"], $params["fields"], $type);
             }
             // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
             $tldfb = preg_replace("/^[^.]+/", "", $tld);
             if ($tlddotted != $tldfb && isset($cfg[$type][$tldfb])) {
                 \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
-                return self::translate($tlddotted, $cfg[$type][$tldfb], $params["whmcsVersion"], $params["fields"]);
+                return self::translate($tlddotted, $cfg[$type][$tldfb], $params["whmcsVersion"], $params["fields"], $type);
             }
         }
         //nothing found ...
-        return self::translate($tlddotted, [], $params["whmcsVersion"], $params["fields"]);
+        return self::translate($tlddotted, [], $params["whmcsVersion"], $params["fields"], $type);
     }
 
     /**
@@ -1450,9 +1450,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      * @param array $fields our generated field configurations for the given extension
      * @param string $whmcsVersion WHMCS Version String
      * @param array $defaultfields WHMCS default field configurations
+     * @param string $type order type (register, transfer, update, trade)
      * @return array
      */
-    public static function translate($tld, $fields, $whmcsVersion, $defaultfields)
+    public static function translate($tld, $fields, $whmcsVersion, $defaultfields, $type = "register")
     {
         foreach ($fields as &$f) {
             // translate Description field
