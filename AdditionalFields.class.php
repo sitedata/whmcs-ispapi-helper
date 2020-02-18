@@ -899,32 +899,32 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $tld = $params["tld"];
         $type = $params["type"];
     
-        $transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
-        $fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
+        //$transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
+        /*$fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
         if ($fields) {
             $fields = json_decode($fields, true);
             if (isset($fields) && is_array($fields)) {
-                return self::translate($tld, $fields, $params["whmcsVersion"], $params["fields"], $type);
+                return self::transform($tld, $fields, $params["whmcsVersion"], $params["fields"], $type);
             }
-        }
+        }*/
         // check if a configuration exists for the given order type (register/transfer/trade/update)
         $cfg = self::$additionalfieldscfg[self::$entity];
         if (!is_null($cfg) && isset($cfg[$type])) {
             // check if a configuration exists for the given tld
             $tlddotted = "." . $tld;
             if (isset($cfg[$type][$tlddotted])) {
-                \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tlddotted]), 86400 * 30);
-                return self::translate($tlddotted, $cfg[$type][$tlddotted], $params["whmcsVersion"], $params["fields"], $type);
+                //\WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tlddotted]), 86400 * 30);
+                return self::transform($tlddotted, $cfg[$type][$tlddotted], $params["whmcsVersion"], $params["fields"], $type);
             }
             // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
             $tldfb = preg_replace("/^[^.]+/", "", $tld);
             if ($tlddotted != $tldfb && isset($cfg[$type][$tldfb])) {
-                \WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
-                return self::translate($tlddotted, $cfg[$type][$tldfb], $params["whmcsVersion"], $params["fields"], $type);
+                //\WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
+                return self::transform($tlddotted, $cfg[$type][$tldfb], $params["whmcsVersion"], $params["fields"], $type);
             }
         }
         //nothing found ...
-        return self::translate($tlddotted, [], $params["whmcsVersion"], $params["fields"], $type);
+        return self::transform($tlddotted, [], $params["whmcsVersion"], $params["fields"], $type);
     }
 
     /**
@@ -1000,16 +1000,18 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "Type" => "dropdown",
             "Required" => false
         ], $overrides);
-        $options = [];
-        if ($cfg["Options"]=="{CountryCodeMap}") { // reuse WHMCS placeholder
-            $cfg["Options"] = ["{CountryCodeMap}"];
-        } else {
-            $countries = (new \WHMCS\Utility\Country())->getCountryNameArray();
-            foreach ($cfg["Options"] as &$val) {
-                if ($val !== "") {
-                    $val .= ("|" . (isset($countries[$val]) ? $countries[$val] : $val));
-                }
-            }
+        $locale = \Lang::getLanguageLocale();
+        $map = [];
+        if ($cfg["Options"]=="{CountryCodeMap}") { // reuse WHMCS placeholder as identifier
+            $cfg["Options"] = array_keys((new \WHMCS\Utility\Country())->getCountryNameArray());
+        }
+        foreach ($cfg["Options"] as &$val) {
+            $map[$val] = upperCaseFirstLetter(\Punic\Territory::getName($val, $locale));
+        }
+        asort($map);
+        $cfg["Options"] = [];
+        foreach ($map as $val => $localizedName) {
+            $cfg["Options"][] = ($val . "|" . $localizedName);
         }
         if ($cfg["Required"]!==true) {//false or conditional requirement
             array_unshift($cfg["Options"], "");
@@ -1107,22 +1109,32 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      */
     public static function getLanguageField($overrides = [])
     {
-        $langs = [];
-        foreach (\Lang::getLocales() as $row) {
-            $langs[$row["languageCode"]] = $row["localisedName"];
-        }
         $cfg = array_merge([
             "Name" => "Registrant Language",
             "Type" => "dropdown",
             "Required" => false
         ], $overrides);
-        
-        $options = [];
+
+        $langs = [];
+        foreach (\Lang::getLocales() as $row) {
+            $langs[$row["languageCode"]] = $row["localisedName"];
+        }
+        $map = [];
         foreach ($cfg["Options"] as &$val) {
-            if ($val !== "") {
-                $lc = strtolower($val);
-                $val .= ("|" . (isset($langs[$lc]) ? $langs[$lc] : $val));
+            $lc = strtolower($val);
+            $map[$val] = isset($langs[$lc]) ? $langs[$lc] : $val;
+        }
+        asort($map);
+        $cfg["Options"] = [];
+        foreach ($map as $val => $localizedName) {
+            $option = $val;
+            if ($val !== $localizedName) {
+                $option .= "|" . $localizedName;
             }
+            $cfg["Options"][] = $option;
+        }
+        if ($cfg["Required"]!==true) {//false or conditional requirement
+            array_unshift($cfg["Options"], "");
         }
         $cfg["Default"] = $cfg["Options"][0];
         return $cfg;
@@ -1441,7 +1453,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     }
 
     /**
-     * Translate our format into WHMCS expected format
+     * Transform our format into WHMCS expected format
      *
      * Replaces translation keys with translations, Placeholders with data and aligns the format to WHMCS.
      * Cares about making Conditional Requirements compatible with 7.8 and disabling default WHMCS domain fields not in use.
@@ -1453,22 +1465,23 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      * @param string $type order type (register, transfer, update, trade)
      * @return array
      */
-    public static function translate($tld, $fields, $whmcsVersion, $defaultfields, $type = "register")
+    public static function transform($tld, $fields, $whmcsVersion, $defaultfields, $type = "register")
     {
+        $currentlang = $_SESSION["Language"];
         foreach ($fields as &$f) {
             // translate Description field
             if (isset($f["Description"])) {
                 $f["Description"] = \Lang::trans($f["Description"]);
-                if (preg_match("/####TAC####/", $f["Description"])) {
+                if (preg_match("/{TAC}/", $f["Description"])) {
                     $tac = self::getTAC($tld);
-                    $f["Description"] = preg_replace("/####TAC####/", $tac, $f["Description"]);
+                    $f["Description"] = preg_replace("/{TAC}/", $tac, $f["Description"]);
                 }
-                if (preg_match("/####FAXFORM####/", $f["Description"])) {
+                if (preg_match("/{FAXFORM}/", $f["Description"])) {
                     $fform = self::getFaxURL($tld, $type);
-                    $f["Description"] = preg_replace("/####FAXFORM####/", $fform, $f["Description"]);
+                    $f["Description"] = preg_replace("/{FAXFORM}/", $fform, $f["Description"]);
                 }
-                if (preg_match("/####TLD####/", $f["Description"])) {
-                    $f["Description"] = preg_replace("/####TLD####/", strtoupper($tld), $f["Description"]);
+                if (preg_match("/{TLD}/", $f["Description"])) {
+                    $f["Description"] = preg_replace("/{TLD}/", strtoupper($tld), $f["Description"]);
                 }
             }
             // translate Options field

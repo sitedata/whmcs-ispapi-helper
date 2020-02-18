@@ -103,8 +103,8 @@ In general you could simply provide a configuration by not using such a function
 
 **NOTE:**
 
-The main differences to the WHMCS standard documentation are that we configure `Description` with a translation key, not with plain text or html. The plain text has then to be provided through the previously mentioned translation files using that translation key. If the `Description` field contains any of the placeholders (`####TAC####`, `####TLD####`) the translation logic cares about replacing that part later on dynamically.
-In case of placeholder `####TAC####` ensure the terms and conditions document is configured in static method `getTAC` in `AdditionalFields.class.php` for your TLD of choice.
+The main differences to the WHMCS standard documentation are that we configure `Description` with a translation key, not with plain text or html. The plain text has then to be provided through the previously mentioned translation files using that translation key. If the `Description` field contains any of the placeholders (`{TAC}`, `{TLD}`) the translation logic cares about replacing that part later on dynamically.
+In case of placeholder `{TAC}` ensure the terms and conditions document is configured in static method `getTAC` in `AdditionalFields.class.php` for your TLD of choice.
 
 Further more OUR configuration considers `Options` as Array and not in coma separated string notation. Use static method `buildOptions` of `AdditionalFields.class.php` if you don't use existing static methods to get a standardized field configuration generated. e.g. `self::buildOptions(".us", "Nexus Category", ["C31", "C32"])`. Ensure to only provide your values in 3rd parameter. This method then auto-generates translation keys for each option and returns something like `["C31|hxflagsustldnexuscategoryc31","C32|hxflagsustldnexuscategoryc32"]`. Also use these translation keys in the previously mentioned translation files to get the plain text or html contents introduced.
 
@@ -227,6 +227,7 @@ Can be used to generate a contact-specific type dropdown list field (e.g. `Admin
 #### method `getCountryField`
 
 Can be used to generate a countries dropdown list field. It uses WHMCS' internals to map country codes to country names.
+**NOTE:** If you want to customize countries, follow [this guide](https://docs.whmcs.com/Customising_Countries_and_Calling_Codes).
 
 ##### Input Parameters
 
@@ -611,8 +612,8 @@ So nothing we have to care about further on.
 
 Sometimes, it is necessary to make translations dynamic for reuse. Therefore, we introduced the below placeholders which are being replaced automatically:
 
-1. `####TAC####` will be replaced by the Terms and Conditions URL of that TLD. Ensure to have it introduced in static method `getTAC` of `AdditionalFields.class.php`
-2. `####TLD####` will be replaced by the dotted TLD format.
+1. `{TAC}` will be replaced by the Terms and Conditions URL of that TLD. Ensure to have it introduced in static method `getTAC` of `AdditionalFields.class.php`
+2. `{TLD}` will be replaced by the dotted TLD format.
 
 This can be extended on demand, let us know if you need something.
 
