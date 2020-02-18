@@ -1,3 +1,10 @@
+## [2.9.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.9.1...v2.9.2) (2020-02-18)
+
+
+### Bug Fixes
+
+* **additional fields:** add order type to arguments list of translate method ([bf755cd](https://github.com/hexonet/whmcs-ispapi-helper/commit/bf755cdda8f519a9fde96edb93e8e0f6d973d7df))
+
 ## [2.9.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.9.0...v2.9.1) (2020-02-17)
 
 
