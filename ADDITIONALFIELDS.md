@@ -11,6 +11,9 @@ Target of this documentation is to basically combine the standard [WHMCS Documen
 * Wrong Dropdown List Entry pre-selected, should be the first one with empty value. [#PHW-648709](https://www.whmcs.com/members/viewticket.php?tid=PHW-648709&c=VtIFzrAa)
 * Dropdown List Entry with `falsy` value is returned as `missing` in submission when field is configured as required field. [#CORE-14277](https://www.whmcs.com/members/viewticket.php?tid=WRJ-298239&c=PtkKH0Ck)
 * Feature Request [`Ability to separate registration additional fields from transfer additional fields`](https://requests.whmcs.com/topic/ability-to-separate-registration-additional-fields-from-transfer-additional-field)
+* Feature Request [`Finalize translation support for additional domain fields`](https://requests.whmcs.com/topic/finalize-translation-support-for-additional-domain-fields)
+
+Feel free to upvote the feature requests - very appreciated!
 
 ## Features of our implementation
 
@@ -22,12 +25,13 @@ Target of this documentation is to basically combine the standard [WHMCS Documen
 * Auto-Generate Translation keys out of configuration if not provided
 * 100% translation support (covering Name, Options, Description): english, german, french
 * Changes can be rolled out in short through a new release
-* County Name to County Code mapped Dropdown Lists can be realized in ease
-* Localized Language Name to Language Code mapped Dropdown Lists can be realized in ease
+* Localized County Dropdown Lists can be realized in ease
+* Localized Language Dropdown Lists can be realized in ease
 * Auto-add empty valued option in case dropdown list is configured to be optional
-* Auto-add Fax Form fields
+* Auto-add Fax Form fields (linking to our [form generator](https://domainform.net))
 * Configure Options in array notation for better readability
 * Support of Conditional Requirements, but compatible with WHMCS < 7.9 (we require >=7.8!)
+* Auto-prefill with previous configuration values in owner change process
 
 ## Activate OUR default additional fields configuration
 
@@ -36,6 +40,8 @@ If you have already the OVERRIDEFILE file in use, please remove the entire file 
 If you have there also TLD configurations for other registrars, be so kind to just cleanup TLD configurations affecting TLDs offered over us.
 
 **NOTE:** We have **no** Local Presence Service activated by default. Please have a further read [here](#local-presence-trustee-service).
+
+Ensure to follow [this section](#translating-additional-domain-fields) to get translations shown, otherwise texts are missing.
 
 ## Uniqueness of domain fields
 
@@ -52,17 +58,26 @@ Any other customizing of additional domain fields on customer's side should happ
 ## Translating additional domain fields
 
 Based on the standard [WHMCS Documentation](https://docs.whmcs.com/Additional_Domain_Fields) section `Translating a Field Name`, follow the below steps to get it realized the best.
+We suggest the below way instead of copy'n'paste of the contents, because in that way, you don't have to care about updating our translations any longer.
 
 * Find language files listed [here](https://github.com/hexonet/whmcs-ispapi-registrar/tree/master/registrars/ispapi/lang/overrides)
-* Create your desired language file in folder `/lang/overrides` of your WHMCS Installation if not existing yet.
+* Create your desired language file in folder `/lang/overrides` of your WHMCS Installation if not existing yet - described [here](https://developers.whmcs.com/languages/overrides/)
 * Ensure the file content starts with `<?php`.
-* Add line e.g. `include implode(DIRDIRECTORY_SEPARATOR, [ROOTDIR, "modules", "registrars", "ispapi", "lang", "overrides", "english.php" ]);` to the english file.
+* Add line e.g. `include implode(DIRECTORY_SEPARATOR, [ROOTDIR, "modules", "registrars", "ispapi", "lang", "overrides", "english.php" ]);` to the english file.
 
-**NOTE:** Even though translating the `Description` or `Options` field is not possible by WHMCS built-in configuration parameters for additional fields like with `LangVar` for the `Name` field translation, we have found a generic solution for exactly that! See [Feature Request](https://requests.whmcs.com/topic/finalize-translation-support-for-additional-domain-fields). Please note that you should **not** modify our translation files. Let us know if you need something changed, we can support. Just open a github issue - we will care about it in short!
+Do this for every language file we offer, but change the file name in the above code snippet accordingly.
+Do this for every language file we do not offer, but use the above line unchanged - this ensures the fallback to english.
+
+**NOTE:** Even though translating the `Description` or `Options` field is not possible by WHMCS built-in configuration parameters for additional fields ([see](https://requests.whmcs.com/topic/finalize-translation-support-for-additional-domain-fields)), we have found a generic solution for exactly that! Please note that you should **not** modify our translation files. Let us know if you need something changed, we can support. Just open a github issue - we will care about it in short! In case you're missing a language file, feel free to work on a Pull Request to get it added. Your Support is very appreciated!
 
 Done!
 
-In case you're missing a language file, feel free to work on a Pull Request to get it added. Your Support is very appreciated!
+```php
+// example for the english part
+include implode(DIRECTORY_SEPARATOR, [ROOTDIR, 'modules', 'registrars', 'ispapi', 'lang', 'overrides', 'english.php'])
+```
+
+We have translation files available for `english`, `germnan`, `french`. If you offer further languages to your customers, please ensure to have this then also rolled out for these files by just including our english translation file instead. In that way you can ensure to have a fallback made to english. Feel free to work on a translation and forward changes / new languages in our direction by pull request.
 
 ### Nomenclature of translation IDs
 
@@ -112,50 +127,6 @@ Further more OUR configuration considers `Options` as Array and not in coma sepa
 How does the translation logic work in detail? Well, we call the static method `translate` of `AdditionalFields.class.php` for a configuration detected, before we return the configuration. This allows us to keep configurations language independent in memory cache.
 
 Of course, we have to review in case WHMCS finalizes the additional domain fields translation logic, but we will know about that step because of our open feature request.
-
-##### Input Parameters
-
-* $names: list of field names e.g. `[ "Legal Type", "Birthplace City" ]` of default fields to remove
-* $fields: list of custom additional fields to use. Optional.
-
-##### Return Value
-
-* domain field**s** configuration array
-
-#### Example
-
-```php
-".asia" => self::disableWHMCSFields(["Legal Type", "Identity Form", "Identity Number"]),
-```
-
-or
-
-```php
-".es" => self::disableWHMCSFields(
-    // default fields to remove
-    [ "ID Form Type", "ID Form Number", 'Entity Type'],
-
-    // custom fields to configure and keep
-    [
-        self::getIndividualRegulatedTLDField(".es"),
-        // further fields to keep ...
-    ]
-),
-```
-
-#### method `getAFNICFields`
-
-Can be used to generate additional fields to be used for TLDs offered by AFNIC registry e.g. .fr, .re, .yt, etc. Useful as additional domain fields fit for all these TLDs.
-
-##### Return Value
-
-* array of domain field configurations
-
-##### Example
-
-```php
-".fr" => self::getAFNICFields(),
-```
 
 #### method `getAllocationTokenField`
 
