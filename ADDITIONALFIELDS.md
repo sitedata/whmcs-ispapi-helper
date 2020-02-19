@@ -6,10 +6,11 @@ Custom additional fields configurations could be applied in the past by keeping 
 
 Target of this documentation is to basically combine the standard [WHMCS Documentation](https://docs.whmcs.com/Additional_Domain_Fields) with the extensions made for the HEXONET/ISPAPI provider module.
 
-## Known Bugs & Support Tickets
+## Known Bugs / Support Tickets / Feature Requests
 
 * Wrong Dropdown List Entry pre-selected, should be the first one with empty value. [#PHW-648709](https://www.whmcs.com/members/viewticket.php?tid=PHW-648709&c=VtIFzrAa)
 * Dropdown List Entry with `falsy` value is returned as `missing` in submission when field is configured as required field. [#CORE-14277](https://www.whmcs.com/members/viewticket.php?tid=WRJ-298239&c=PtkKH0Ck)
+* Feature Request [`Ability to separate registration additional fields from transfer additional fields`](https://requests.whmcs.com/topic/ability-to-separate-registration-additional-fields-from-transfer-additional-field)
 
 ## Features of our implementation
 
