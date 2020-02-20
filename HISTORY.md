@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.10.0...v2.10.1) (2020-02-20)
+
+
+### Bug Fixes
+
+* **additional fields:** reviewed TAX ID and DK Contact ID data prefilling to a reliable mechanism ([c5064a9](https://github.com/hexonet/whmcs-ispapi-helper/commit/c5064a920b1996923bb467ef04ac6ff754304e29))
+
 # [2.10.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.9.2...v2.10.0) (2020-02-18)
 
 
