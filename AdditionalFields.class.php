@@ -34,7 +34,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         "OTE"=>null,
         "LIVE"=>null
     ];
-
+    /**
+     * container to keep client related data like .DK Hostmaster ID or VAT ID
+     */
+    public static $clientData = [];
     /**
      * Method to initiate the class, entry point for `ispapi_AdditionalDomainFields`
      *
@@ -43,6 +46,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      */
     public static function init($isOTE)
     {
+        self::loadClientDefaults();
         self::$isOTE = $isOTE;
         self::$entity = $isOTE ? "OTE" : "LIVE";
         if (!is_null(self::$additionalfieldscfg[self::$entity])) {
@@ -78,7 +82,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                             "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM", "TRD",
                             "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
                         ],
-                        "Description" => "",
+                        "Description" => "catldlegaltypedescr",
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
                     ]),
@@ -86,7 +90,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "WHOIS Opt-out",
                         "LangVar" => "whoisoptout",
                         "Description" => "catldwhoisoptoutdescr",
-                        "Ispapi-Name" => "X-CA-DISCLOSE"
+                        "Ispapi-Name" => "X-CA-DISCLOSE",
+                        "Ispapi-Dependent" => [ "Legal Type" ]
                     ],
                     self::getLanguageField([
                         "Name" => "Contact Language",
@@ -169,7 +174,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "Registrant Contact",
                         "Description" => "dktldcontactdescr",
                         "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT",
-                        "LangVar" => "dkregistrantcontact"
+                        "LangVar" => "dkregistrantcontact",
+                        "Ispapi-Prefill" => "DK-ID"
                     ]),
                     self::getLegalTypeField(".dk", [
                         "Name" => "Admin Legal Type",
@@ -190,7 +196,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "Admin Contact",
                         "Description" => "dktldcontactdescr",
                         "Ispapi-Name" => "X-DK-ADMIN-CONTACT",
-                        "LangVar" => "dkadmincontact"
+                        "LangVar" => "dkadmincontact",
+                        "Ispapi-Prefill" => "DK-ID"
                     ])
                 ],
                 // ---------------------- E ---------------------------------
@@ -629,7 +636,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Name" => "VAT ID",
                         "Type" => "text",
                         "LangVar" => "registrantvatid",
-                        "Ispapi-Name" => "X-NICSE-VATID"
+                        "Ispapi-Name" => "X-NICSE-VATID",
+                        "Ispapi-Prefill" => "VAT-ID"
                     ]
                 ],
                 ".sg" => [
@@ -659,21 +667,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ])
                 ],
                 // ---------------------- T ---------------------------------
-                ".tel" => [
-                    self::getLegalTypeField(".tel", [
-                        "Options" => [ "Natural", "Legal" ],
-                        "Required" => true,
-                        "Ispapi-Name" => "X-TEL-WHOISTYPE"
-                    ]),
-                    self::getYesNoField(".tel", [
-                        "Name" => "WHOIS Opt-out",
-                        "LangVar" => "whoisoptout",
-                        "Description" => "teltldwhoisoptoutdescr",
-                        "Ispapi-Name" => "X-TEL-PUBLISH",
-                        "Options" => ["Y", "N"],
-                        "Required" => false
-                    ])
-                ],
                 ".trading" => [ self::getHighlyRegulatedTLDField(".trading") ],
                 ".travel" => [
                     self::getYesNoField(".travel", [
@@ -692,7 +685,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Options" => [ "P1", "P2", "P3", "P4", "P5" ]
                     ]),
                     self::getNexusCategoryField(".us", [
-                        "Options" => [ "C11", "C12", "C21", "C31", "C32" ]
+                        "Options" => [ "C11", "C12", "C21", "C31", "C32" ],
+                        "Description" => "ustldnexuscategorycdescr"
                     ]),
                     self::getCountryField([
                         "Name" => ".US Nexus Country",
@@ -734,7 +728,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                             "CCO", "CCT", "RES", "GOV", "EDU", "ASS", "HOS", "PRT", "TDM", "TRD",
                             "PLT", "LAM", "TRS", "ABO", "INB", "LGR", "OMK", "MAJ"
                         ],
-                        "Description" => "",
+                        "Description" => "catldlegaltypedescr",
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
                     ]),
@@ -821,7 +815,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
 
         // mapp configuration trade <- transfer
-        foreach ([ ".ca", ".cat" ] as $tld) {
+        foreach ([ ".cat" ] as $tld) {
             self::$additionalfieldscfg[self::$entity]["trade"][$tld] = self::$additionalfieldscfg[self::$entity]["transfer"][$tld];
         }
 
@@ -848,6 +842,26 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     $fields[] = $field;
                 }
             }
+        }
+    }
+
+    public static function loadClientDefaults()
+    {
+        self::$clientData = [];
+        self::$clientData['DK-ID'] = '';
+        if (function_exists('getCustomFields')) {
+            $cfs = getCustomFields("client", "", $_SESSION['uid'], "on", "");
+            foreach ($cfs as $cf) {
+                if ("dkhostmasteruserid" === $cf['textid'] && !empty($cf['value'])) {
+                    self::$clientData['DK-ID'] = $cf['value'];
+                }
+            }
+        }
+
+        self::$clientData['VAT-ID'] = '';
+        $r = localAPI('GetClientsDetails', [ 'clientid' => $_SESSION['uid'] ]);
+        if ($r['result'] === 'success') {
+            self::$clientData['VAT-ID'] = $r['tax_id'];
         }
     }
 
@@ -899,27 +913,17 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $tld = $params["tld"];
         $type = $params["type"];
     
-        //$transientKey = "ispapiFields" . self::$entity . ucfirst($type) . ucfirst($tld);
-        /*$fields = \WHMCS\TransientData::getInstance()->retrieve($transientKey);
-        if ($fields) {
-            $fields = json_decode($fields, true);
-            if (isset($fields) && is_array($fields)) {
-                return self::transform($tld, $fields, $params["whmcsVersion"], $params["fields"], $type);
-            }
-        }*/
         // check if a configuration exists for the given order type (register/transfer/trade/update)
         $cfg = self::$additionalfieldscfg[self::$entity];
         if (!is_null($cfg) && isset($cfg[$type])) {
             // check if a configuration exists for the given tld
             $tlddotted = "." . $tld;
             if (isset($cfg[$type][$tlddotted])) {
-                //\WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tlddotted]), 86400 * 30);
                 return self::transform($tlddotted, $cfg[$type][$tlddotted], $params["whmcsVersion"], $params["fields"], $type);
             }
             // check if a configuration exists for 2nd level fallback (in case of incoming 3rd level tld)
             $tldfb = preg_replace("/^[^.]+/", "", $tld);
             if ($tlddotted != $tldfb && isset($cfg[$type][$tldfb])) {
-                //\WHMCS\TransientData::getInstance()->store($transientKey, json_encode($cfg[$type][$tldfb]), 86400 * 30);
                 return self::transform($tlddotted, $cfg[$type][$tldfb], $params["whmcsVersion"], $params["fields"], $type);
             }
         }
@@ -1426,7 +1430,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             "LangVar" => strtolower($contacttype) . "vatid",
             "Type" => "text",
             'Required' => [ 'Legal Type' => [ 'ORG' ] ],
-            "Ispapi-Name" => "X-" . $contacttype . "-VATID"
+            "Ispapi-Name" => "X-" . $contacttype . "-VATID",
+            "Ispapi-Prefill" => "VAT-ID"
         ], $overrides);
     }
 
@@ -1469,6 +1474,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     {
         $currentlang = $_SESSION["Language"];
         foreach ($fields as &$f) {
+            // Prefill with real Data
+            if (isset($f["Ispapi-Prefill"]) && isset(self::$clientData[$f["Ispapi-Prefill"]])) {
+                $f["Default"] = self::$clientData[$f["Ispapi-Prefill"]];
+            }
             // translate Description field
             if (isset($f["Description"])) {
                 $f["Description"] = \Lang::trans($f["Description"]);

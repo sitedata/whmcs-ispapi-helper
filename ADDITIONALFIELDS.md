@@ -680,6 +680,41 @@ self::$additionalfieldscfg[self::$entity] = [
 ];
 ```
 
+#### Ispapi-Prefill #### [ADDED in v3.0.0]
+
+Possibile values: `VAT-ID` and `DK-ID`.
+Will prefill the field with client's data accordingly by setting `Default` to that value.
+
+example for tax id prefilling:
+
+```php
+".se" => [
+    // ...
+    [
+        "Name" => "VAT ID",
+        "Type" => "text",
+        "LangVar" => "registrantvatid",
+        "Ispapi-Name" => "X-NICSE-VATID",
+        "Ispapi-Prefill" => "VAT-ID"
+    ]
+],
+```
+
+example for .DK user id prefilling:
+
+```php
+".dk" => [
+    // ...
+    self::getContactIdentificationField("", [
+        "Name" => "Registrant Contact",
+        "Description" => "dktldcontactdescr",
+        "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT",
+        "LangVar" => "dkregistrantcontact",
+        "Ispapi-Prefill" => "DK-ID"
+    ])
+],
+```
+
 #### Ispapi-Options [REMOVED by v3.0.0]
 
 Removed in favour of the more compact piped notation WHMCS now allows in property `options`.
