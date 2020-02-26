@@ -9,7 +9,7 @@
   },
   "license": "MIT",
   "engines": {
-    "node": ">=8.3.0"
+    "node": ">=10.18.0"
   },
   "homepage": "https://github.com/hexonet/whmcs-ispapi-helper",
   "repository": "github:hexonet/whmcs-ispapi-helper.git",
@@ -46,7 +46,7 @@
   "devDependencies": {
     "npm": ">=6.13.4",
     "@hexonet/semantic-release-github-npm-config": "^1.0.0",
-    "semantic-release": "^15.13.12"
+    "semantic-release": "^17.0.4"
   },
   "scripts": {
     "codeCheck": "phpcs --standard=PSR1,PSR2 -q -n --colors *.php",
