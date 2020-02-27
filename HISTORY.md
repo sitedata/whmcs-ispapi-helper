@@ -1,3 +1,15 @@
+# [2.11.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.10.1...v2.11.0) (2020-02-27)
+
+
+### Bug Fixes
+
+* **additional fields:** fix usage of getClientsData ([f17c127](https://github.com/hexonet/whmcs-ispapi-helper/commit/f17c12702692b741b653a3540ae1a11547232343))
+
+
+### Features
+
+* **whois privacy:** review whois privacy service implementation ([23fc483](https://github.com/hexonet/whmcs-ispapi-helper/commit/23fc4833c66d5da3e061440ee1cf710e4546b840))
+
 ## [2.10.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.10.0...v2.10.1) (2020-02-20)
 
 
