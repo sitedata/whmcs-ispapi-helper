@@ -1,3 +1,10 @@
+## [2.12.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.0...v2.12.1) (2020-02-27)
+
+
+### Bug Fixes
+
+* **domain import:** fix price calculation for standard domain names ([6646364](https://github.com/hexonet/whmcs-ispapi-helper/commit/66463648ed74296ac431fab1db8cadd5a6ead2b0))
+
 # [2.12.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.11.0...v2.12.0) (2020-02-27)
 
 
