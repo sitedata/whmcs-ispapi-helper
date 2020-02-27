@@ -1613,9 +1613,13 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return $protectable;
     }
 
+    /**
+     * Return field's value under consideration of default value and type-specifics
+     * @param int $fieldKey the index of the field in the additional fields list
+     * @return string|int
+     */
     public function getFieldValue($fieldKey)
     {
-
         $val = $this->getConfigValue($fieldKey, "Default");
         if (parent::getFieldValue($fieldKey) !== "") {
             $val = parent::getFieldValue($fieldKey);
@@ -1629,23 +1633,18 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     /**
      * Pre-fill WHMCS additional field values by our API data
      * @param array $r API response
-     * untested! TODO
      */
     public function setFieldValuesFromAPI($r)
     {
         if ($r["CODE"] == "200") {
             $data = [];
-            //check if $r["PROPERTY"] has been used for this fn call
-            if (isset($r["PROPERTY"])) {
-                $r = $r["PROPERTY"];
-            }
             foreach ($this->getFields() as $fieldKey => $values) {
                 $type = $this->getConfigValue($fieldKey, "Type");
                 $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
                 $name = $this->getConfigValue($fieldKey, "Name");
                 $defaultval = $this->getConfigValue($fieldKey, "Default");
-                if (isset($r[$iname][0])) {
-                    $data[$name] = $r[$iname][0];
+                if (isset($r["PROPERTY"][$iname][0])) {
+                    $data[$name] = $r["PROPERTY"][$iname][0];
                     if ($type == "tickbox" && $data[$name] == "1") {
                         $data[$name] = $defaultval;
                     }
