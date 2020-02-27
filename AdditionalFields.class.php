@@ -869,7 +869,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
 
         self::$clientData['VAT-ID'] = '';
-        $r = localAPI('GetClientsDetails', [ 'clientid' => $_SESSION['uid'] ]);
+        $r = localAPI('GetClientsDetails');
         if ($r['result'] === 'success') {
             self::$clientData['VAT-ID'] = $r['tax_id'];
         }
