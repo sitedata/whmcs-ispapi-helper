@@ -1,5 +1,5 @@
 language: php
-dist: bionic
+dist: xenial
 notifications:
   email:
     recipients:
@@ -12,6 +12,7 @@ php:
   - 7.3
 # Trigger a push build on master and dependabot branches + PRs build on every branches
 # Avoid double build on PRs (See https://github.com/travis-ci/travis-ci/issues/1147)
+cache: false
 branches:
   only:
     - master
