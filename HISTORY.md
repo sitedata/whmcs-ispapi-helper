@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.11.0...v2.12.0) (2020-02-27)
+
+
+### Features
+
+* **additional fields:** added placeholder {EUCountryCodeMap} for getCountryField ([f9804ea](https://github.com/hexonet/whmcs-ispapi-helper/commit/f9804ea48e70b655b0ad687386f0243f739ae926))
+
 # [2.11.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.10.1...v2.11.0) (2020-02-27)
 
 
