@@ -469,6 +469,8 @@ class Helper
                 "msgid" => "tldrenewalpriceerror"
             );
         }
+
+        $tld = $domainObj->getTLD();
         $prices = $domainprices["pricing"][$tld];
 
         // get premium price
@@ -506,7 +508,6 @@ class Helper
             $renewprice = convertCurrency($renewprice, $premiumpricing["currency"]->id, $client["currency"]);
             $renewprice = (double) format_as_currency($renewprice);
         } else {
-            $tld = $domainObj->getTLD();
             if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
                 return array(
                     "success" => false,
