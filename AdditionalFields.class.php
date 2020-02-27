@@ -2,6 +2,8 @@
 
 namespace ISPAPI;
 
+include "Country.class.php";
+
 /**
  * AdditionalFields class
  *
@@ -237,7 +239,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".eu" => [
                     self::getCountryField([
                         "Name" => "Registrant Citizenship",
-                        "Options" => ["AT", "BE", "BG", "CZ", "CY", "DE", "DK", "ES", "EE", "FI", "FR", "GR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SK", "SI", "HR"],
+                        "Options" => "{EUCountryCodeMap}",
                         "Description" => "eutldregistrantcitizenshipdescr",
                         "Ispapi-Name" => "X-EU-REGISTRANT-CITIZENSHIP"
                     ])
@@ -1017,7 +1019,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $locale = \Lang::getLanguageLocale();
         $map = [];
         if ($cfg["Options"]=="{CountryCodeMap}") { // reuse WHMCS placeholder as identifier
-            $cfg["Options"] = array_keys((new \WHMCS\Utility\Country())->getCountryNameArray());
+            $cfg["Options"] = \ISPAPI\Country::getCountryCodes();
+        }
+        if ($cfg["Options"] == "{EUCountryCodeMap}") {
+            $cfg["Options"] = \ISPAPI\Country::getEUMemberStatesCountryCodes();
         }
         foreach ($cfg["Options"] as &$val) {
             $map[$val] = upperCaseFirstLetter(\Punic\Territory::getName($val, $locale));
