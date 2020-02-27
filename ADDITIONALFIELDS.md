@@ -629,7 +629,7 @@ Used to conditionally remove parameters from final API command, see .dk for exam
 The below example shows how to use this feature. In case the field's value is set to `INDIV`, parameter `OWNERCONTACT0ORGANIZATION` will be removed from final API Command.
 
 ```php
-self::$additionalfieldscfg[self::$entity] = [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
     ".dk" => [
         [
@@ -646,7 +646,7 @@ self::$additionalfieldscfg[self::$entity] = [
 or, in case the API command is using a nested array, the below way is also supported:
 
 ```php
-self::$additionalfieldscfg[self::$entity] = [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
     ".dk" => [
         [
@@ -667,7 +667,7 @@ self::$additionalfieldscfg[self::$entity] = [
 This property covers the so-called extension flag name of the additional domain field in our backend system API e.g.
 
 ```php
-self::$additionalfieldscfg[self::$entity] = [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
     ".ca" => [
         [
@@ -680,7 +680,31 @@ self::$additionalfieldscfg[self::$entity] = [
 ];
 ```
 
-#### Ispapi-Prefill #### [ADDED in v3.0.0]
+#### Ispapi-WhoisProtectable #### [SINCE v3.0.0]
+
+**NOTE:** Can only be used in type section `whoisprivacy`.
+
+Possibility to specify cases where the domain name can not benefit of WHOIS Privacy Protection.
+e.g. for .CA it is only possible in case `Legal Type` has been configured to something that is considered as `Individual`.
+
+```php
+self::$additionalfieldscfg[self::$entity]["whoisprivacy"] = [
+    // ...
+    // We have here not an array of arrays. That's not an issue as for whois privacy service there will always just be one field.
+    ".ca" => [
+        "Description" => "catldwhoisoptoutdescr",
+        "Ispapi-Name" => "X-CA-DISCLOSE",
+        "Ispapi-WhoisProtectable" => [ "Legal Type" => "/^(CCT|RES|ABO|LGR)$/" ]
+    ]
+];
+```
+
+Specify `Name` of the field dependency as key in `Ispapi-WhoisProtectable` and a regular expression that can be used to validate against.
+We will run over all keys provided and use their regular expressions provided to determine if the domain can be protected or not.
+
+If you don't specify `Ispapi-WhoisProtectable` it depends on `ID Protection` service by default.
+
+#### Ispapi-Prefill #### [SINCE v3.0.0]
 
 Possibile values: `VAT-ID` and `DK-ID`.
 Will prefill the field with client's data accordingly by setting `Default` to that value.
@@ -688,31 +712,37 @@ Will prefill the field with client's data accordingly by setting `Default` to th
 example for tax id prefilling:
 
 ```php
-".se" => [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
-    [
-        "Name" => "VAT ID",
-        "Type" => "text",
-        "LangVar" => "registrantvatid",
-        "Ispapi-Name" => "X-NICSE-VATID",
-        "Ispapi-Prefill" => "VAT-ID"
+    ".se" => [
+        // ...
+        [
+            "Name" => "VAT ID",
+            "Type" => "text",
+            "LangVar" => "registrantvatid",
+            "Ispapi-Name" => "X-NICSE-VATID",
+            "Ispapi-Prefill" => "VAT-ID"
+        ]
     ]
-],
+];
 ```
 
 example for .DK user id prefilling:
 
 ```php
-".dk" => [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
-    self::getContactIdentificationField("", [
-        "Name" => "Registrant Contact",
-        "Description" => "dktldcontactdescr",
-        "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT",
-        "LangVar" => "dkregistrantcontact",
-        "Ispapi-Prefill" => "DK-ID"
-    ])
-],
+    ".dk" => [
+        // ...
+        self::getContactIdentificationField("", [
+            "Name" => "Registrant Contact",
+            "Description" => "dktldcontactdescr",
+            "Ispapi-Name" => "X-DK-REGISTRANT-CONTACT",
+            "LangVar" => "dkregistrantcontact",
+            "Ispapi-Prefill" => "DK-ID"
+        ])
+    ]
+];
 ```
 
 #### Ispapi-Options [REMOVED by v3.0.0]
@@ -721,7 +751,7 @@ Removed in favour of the more compact piped notation WHMCS now allows in propert
 Specify here values for dropdown lists / fields that should reach our backend system API. The index of the value provided here has to correspond to the one specified in property `Options`. e.g.:
 
 ```php
-self::$additionalfieldscfg[self::$entity] = [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
     ".ca" => [
         [
@@ -748,7 +778,7 @@ self::$additionalfieldscfg[self::$entity] = [
 Replace the above by
 
 ```php
-self::$additionalfieldscfg[self::$entity] = [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
     ".ca" => [
         [
@@ -775,7 +805,7 @@ Specify a comma-separated list of countries for which this field should get igno
 The list will then be compared to registrant's country which is provided by WHMCS in `$params["country"]` in the appropriate registrar module methods.
 
 ```php
-self::$additionalfieldscfg[self::$entity] = [
+self::$additionalfieldscfg[self::$entity]["register"] = [
     // ...
     ".it" => [
         [

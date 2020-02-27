@@ -86,13 +86,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
                     ]),
-                    [
-                        "Name" => "WHOIS Opt-out",
-                        "LangVar" => "whoisoptout",
-                        "Description" => "catldwhoisoptoutdescr",
-                        "Ispapi-Name" => "X-CA-DISCLOSE",
-                        "Ispapi-Dependent" => [ "Legal Type" ]
-                    ],
                     self::getLanguageField([
                         "Name" => "Contact Language",
                         "Options" => ["EN", "FR"],
@@ -719,7 +712,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                     ]
                 ],
                 // ---------------------- Z ---------------------------------
-                ".org.za" => [ self::getHighlyRegulatedTLDField(".za") ],
+                ".org.za" => [ self::getHighlyRegulatedTLDField(".za") ]
             ],
             "transfer" => [//TODO review
                 ".ca" => [
@@ -731,7 +724,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Description" => "catldlegaltypedescr",
                         "Required" => true,
                         "Ispapi-Name" => "X-CA-LEGALTYPE"
-                    ]),
+                    ])
                 ],
                 ".cat" => [self::getHighlyRegulatedTLDField(".cat")],
                 ".it" => [
@@ -763,6 +756,23 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                         "Description" => "swisstldregistrantenterpriseiddescr",
                         "Default" => "CHE",
                         "Ispapi-Name" => "X-SWISS-REGISTRANT-ENTERPRISE-ID"
+                    ]
+                ]
+            ],
+            "whoisprivacy" => [
+                ".default_fallback" => [
+                    [
+                        "Name" => "ID Protection",
+                        "Ispapi-Name" => "X-ACCEPT-WHOISTRUSTEE-TAC",
+                        "Type" => "normal"
+                    ]
+                ],
+                ".ca" => [
+                    [
+                        "Name" => "ID Protection",
+                        "Ispapi-Name" => "X-CA-DISCLOSE",
+                        "Type" => "reverse",
+                        "Ispapi-WhoisProtectable" => "/^(CCT|RES|ABO|LGR)$/"
                     ]
                 ]
             ]
@@ -1561,17 +1571,59 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 continue;
             }
             $type = $this->getConfigValue($fieldKey, "Type");
-            $val = $this->getConfigValue($fieldKey, "Default");
-            if ($this->getFieldValue($fieldKey) !== "") {
-                $val = $this->getFieldValue($fieldKey);
-            }
-            if ($type == "tickbox") {
-                $val = ($val) ? 1 : 0;
-            }
+            $val = $this->getFieldValue($fieldKey);
             if (!empty($val)) {
                 $command[$iname] = $val;
             }
         }
+    }
+
+    /**
+     * Checks if given domain name's WHOIS data can be protected
+     * @param \WHMCS\Domains\Domain $domain domain object
+     * @param array $fields additional fields prefilled with their values for this
+     * @return bool
+     */
+    public function isWhoisProtectable()
+    {
+        $tld = "." . preg_replace("/^.+\./", "", $this->getTLD());
+        if (!isset(self::$additionalfieldscfg[self::$entity]["whoisprivacy"][$tld]["Ispapi-WhoisProtectable"])) {
+            return true;
+        }
+        $depfields = self::$additionalfieldscfg[self::$entity]["whoisprivacy"][$tld]["Ispapi-WhoisProtectable"];
+
+        if ($this->domainType!="register") {
+            $addflds = new self();
+            $addflds->setDomainType("register")->setTLD($tld);
+        } else {
+            $addflds = $this;
+        }
+        
+        $protectable = true;
+        $fields = $addflds->getFields();
+        foreach ($depfields as $name => $regexp) {
+            foreach ($fields as $fieldKey => $values) {
+                if ($addflds->getConfigValue($fieldKey, "Name") !== $name) {
+                    break;
+                }
+                $val = $addflds->getFieldValue($fieldKey);
+                $protectable = $protectable && preg_match($regexp, $val);
+            }
+        }
+        return $protectable;
+    }
+
+    public function getFieldValue($fieldKey)
+    {
+
+        $val = $this->getConfigValue($fieldKey, "Default");
+        if (parent::getFieldValue($fieldKey) !== "") {
+            $val = parent::getFieldValue($fieldKey);
+        }
+        if ($this->getConfigValue($fieldKey, "Type") == "tickbox") {
+            $val = ($val) ? 1 : 0;
+        }
+        return $val;
     }
 
     /**
@@ -1613,7 +1665,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     public function setDomainType($type = "register")
     {
         $type = strtolower($type);
-        if (!in_array($type, ["register", "transfer", "update", "trade"])) {
+        if (!in_array($type, ["register", "transfer", "update", "trade", "whoisprivacy"])) {
             $type = "register";
         }
         $this->domainType = $type;
