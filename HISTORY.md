@@ -1,3 +1,10 @@
+## [2.12.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.1...v2.12.2) (2020-03-02)
+
+
+### Bug Fixes
+
+* **additional fields:** auto-call init method in constructor to ensure data being initiated ([11845f9](https://github.com/hexonet/whmcs-ispapi-helper/commit/11845f9dd7d46442de5dbfb9c2411a1defd550a3))
+
 ## [2.12.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.0...v2.12.1) (2020-02-27)
 
 
