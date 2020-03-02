@@ -1384,7 +1384,14 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".xxx" => "http://www.icmregistry.com/about/policies/registry-registrant-agreement/",
             ".za" => "https://www.zadna.org.za/"
         ];
-        return isset($tac[$tld]) ? $tac[$tld] : "#";
+        if (isset($tac[$tld])) {
+            return $tac[$tld];
+        }
+        $tld = preg_replace("/^.+\./", ".", $tld);
+        if (isset($tac[$tld])) {
+            return $tac[$tld];
+        }
+        return "#";
     }
 
     /**
