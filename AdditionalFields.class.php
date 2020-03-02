@@ -765,16 +765,39 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ".default_fallback" => [
                     [
                         "Name" => "ID Protection",
-                        "Ispapi-Name" => "X-ACCEPT-WHOISTRUSTEE-TAC",
-                        "Type" => "normal"
+                        "Ispapi-Name" => "X-ACCEPT-WHOISTRUSTEE-TAC"
                     ]
                 ],
+                // for INDIVIDUALS only for the below TLDs, inactive by default
+                // which means WHOIS is protected, but can be changed
                 ".ca" => [
                     [
                         "Name" => "ID Protection",
                         "Ispapi-Name" => "X-CA-DISCLOSE",
-                        "Type" => "reverse",
-                        "Ispapi-WhoisProtectable" => "/^(CCT|RES|ABO|LGR)$/"
+                        "Type" => "dropdown",
+                        "Options" => ["0", "1"],
+                        "Ispapi-WhoisProtectable" => [
+                            "Legal Type" => "/^(CCT|RES|ABO|LGR)$/"
+                        ]
+                    ]
+                ],
+                ".se" => [
+                    [
+                        "Name" => "ID Protection",
+                        "Ispapi-Name" => "X-NICSE-DISCLOSE",
+                        "Type" => "dropdown",
+                        "Options" => ["0", "1"],
+                        "Ispapi-WhoisProtectable" => [
+                            "ID Number" => "/^.+$/"
+                        ]
+                    ]
+                ],
+                ".nz" => [
+                    [
+                        "Name" => "ID Protection",
+                        "Ispapi-Name" => "X-DISCLOSE",
+                        "Type" => "dropdown",
+                        "Options" => ["0", "1"]
                     ]
                 ]
             ]
@@ -893,7 +916,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $params = injectDomainObjectIfNecessary($params);
         $type = isset($params["type"]) ? $params["type"] : "register";
 
-        (new self())
+        (new self($params["TestMode"] == "on"))
                 ->setDomainType($type)
                 ->setDomain($params["domainObj"]->getDomain())
                 ->setFieldValues($params["additionalfields"])
@@ -1550,6 +1573,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return ["fields" => $fields];
     }
 
+    public function __construct($isOTE)
+    {
+        self::init($isOTE);
+    }
+
 
     /**
      * Add additional field values to the API command by appropriate parameter names (`Ispapi-Name`)
@@ -1585,20 +1613,19 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
 
     /**
      * Checks if given domain name's WHOIS data can be protected
-     * @param \WHMCS\Domains\Domain $domain domain object
-     * @param array $fields additional fields prefilled with their values for this
      * @return bool
      */
     public function isWhoisProtectable()
     {
-        $tld = "." . preg_replace("/^.+\./", "", $this->getTLD());
-        if (!isset(self::$additionalfieldscfg[self::$entity]["whoisprivacy"][$tld]["Ispapi-WhoisProtectable"])) {
+        $tld = preg_replace("/^.+\./", "", $this->getTLD());
+        // here we can use index 0, as we access data as defined in static array
+        if (!isset(self::$additionalfieldscfg[self::$entity]["whoisprivacy"][$tld][0]["Ispapi-WhoisProtectable"])) {
             return true;
         }
-        $depfields = self::$additionalfieldscfg[self::$entity]["whoisprivacy"][$tld]["Ispapi-WhoisProtectable"];
+        $depfields = self::$additionalfieldscfg[self::$entity]["whoisprivacy"][$tld][0]["Ispapi-WhoisProtectable"];
 
         if ($this->domainType!="register") {
-            $addflds = new self();
+            $addflds = new self(self::$isOTE);
             $addflds->setDomainType("register")->setTLD($tld);
         } else {
             $addflds = $this;
@@ -1608,14 +1635,59 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $fields = $addflds->getFields();
         foreach ($depfields as $name => $regexp) {
             foreach ($fields as $fieldKey => $values) {
-                if ($addflds->getConfigValue($fieldKey, "Name") !== $name) {
+                if ($addflds->getConfigValue($fieldKey, "Name") === $name) {
+                    $val = $addflds->getFieldValue($fieldKey);
+                    $protectable = $protectable && preg_match($regexp, $val);
+                    if (!$protectable) {
+                        break 2;
+                    }
                     break;
                 }
-                $val = $addflds->getFieldValue($fieldKey);
-                $protectable = $protectable && preg_match($regexp, $val);
             }
         }
         return $protectable;
+    }
+
+    /**
+     * Checks if given domain name's WHOIS data is currently protected
+     * NOTE: we cannot use fieldKey 0 directly as default whmcs fields are increasing it even though removed
+     * So searching for the right field name is a must.
+     * @return bool
+     */
+    public function isWhoisProtected()
+    {
+        $protected = false;
+        $fields = $this->getFields();
+        foreach ($fields as $fieldKey => $values) {
+            if ($this->getConfigValue($fieldKey, "Name") === "ID Protection") {
+                if (!preg_match("/-DISCLOSE$/i", $this->getConfigValue($fieldKey, "Ispapi-Name"))) {
+                    return (bool)$this->getFieldValue($fieldKey);
+                }
+                return !(bool)$this->getFieldValue($fieldKey);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Reflect the desired registry-side WHOIS Privacy Service changes in command accordingly
+     * @param array $command API Command to update
+     * @param string $idprotection desired new whois privacy status
+     */
+    public function addWhoisProtectiontoCommand(&$command, $idprotection)
+    {
+        $fields = $this->getFields();
+        foreach ($fields as $fieldKey => $values) {
+            if ($this->getConfigValue($fieldKey, "Name") === "ID Protection") {
+                $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
+                if (preg_match("/-DISCLOSE$/i", $iname)) {
+                    $command[$iname] = $idprotection ? "0" : "1";
+                } else {
+                    $command[$iname] = $idprotection;
+                }
+                break;
+            }
+        }
     }
 
     /**
@@ -1641,22 +1713,23 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      */
     public function setFieldValuesFromAPI($r)
     {
-        if ($r["CODE"] == "200") {
-            $data = [];
-            foreach ($this->getFields() as $fieldKey => $values) {
-                $type = $this->getConfigValue($fieldKey, "Type");
-                $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
-                $name = $this->getConfigValue($fieldKey, "Name");
-                $defaultval = $this->getConfigValue($fieldKey, "Default");
-                if (isset($r["PROPERTY"][$iname][0])) {
-                    $data[$name] = $r["PROPERTY"][$iname][0];
-                    if ($type == "tickbox" && $data[$name] == "1") {
-                        $data[$name] = $defaultval;
-                    }
+        if ($r["CODE"] != "200") {
+            return $this;
+        }
+        $data = [];
+        foreach ($this->getFields() as $fieldKey => $values) {
+            $type = $this->getConfigValue($fieldKey, "Type");
+            $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
+            $name = $this->getConfigValue($fieldKey, "Name");
+            $defaultval = $this->getConfigValue($fieldKey, "Default");
+            if (isset($r["PROPERTY"][$iname][0])) {
+                $data[$name] = $r["PROPERTY"][$iname][0];
+                if ($type == "tickbox" && $data[$name] == "1") {
+                    $data[$name] = $defaultval;
                 }
             }
-            parent::setFieldValues($data);
         }
+        parent::setFieldValues($data);
         return $this;
     }
 

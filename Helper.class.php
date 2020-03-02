@@ -344,7 +344,7 @@ class Helper
                 }
             }
             //--- care about extension flags (we could handle this in DomainSync instead)
-            $addflds = new \ISPAPI\AdditionalFields();
+            $addflds = new \ISPAPI\AdditionalFields($params["TestMode"] == "on");
             $addflds->setDomain($domain->getDomain())->setFieldValuesFromAPI($apidata)->saveToDatabase($r["insertid"]);
         }
         return $r["success"];
