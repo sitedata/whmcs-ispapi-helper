@@ -1,3 +1,10 @@
+## [2.12.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.2...v2.12.3) (2020-03-02)
+
+
+### Bug Fixes
+
+* **additional fields:** fixed TAC document url detection ([f3fe931](https://github.com/hexonet/whmcs-ispapi-helper/commit/f3fe9319d9d711e8d213cb03015c8fe6ac6e1ded))
+
 ## [2.12.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.1...v2.12.2) (2020-03-02)
 
 
