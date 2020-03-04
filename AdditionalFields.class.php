@@ -875,6 +875,9 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         }
     }
 
+    /**
+     * Load client's default data for pre-filling fields
+     */
     public static function loadClientDefaults()
     {
         self::$clientData = [];
