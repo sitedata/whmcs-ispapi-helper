@@ -763,12 +763,6 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ]
             ],
             "whoisprivacy" => [
-                ".default_fallback" => [
-                    [
-                        "Name" => "ID Protection",
-                        "Ispapi-Name" => "X-ACCEPT-WHOISTRUSTEE-TAC"
-                    ]
-                ],
                 // for INDIVIDUALS only for the below TLDs, inactive by default
                 // which means WHOIS is protected, but can be changed
                 ".ca" => [
@@ -1581,6 +1575,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         return ["fields" => $fields];
     }
 
+    /**
+     * Constructor
+     * If we can drop out any system-entity specifics in future, we can remove it completely
+     * @param bool $isOTE flag used to identify which system entity is used (OT&E or LIVE)
+     */
     public function __construct($isOTE)
     {
         self::init($isOTE);
@@ -1657,6 +1656,21 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     }
 
     /**
+     * Get the field key for the WHOIS Privacy Protection field
+     * @return bool|int FALSE if not found, otherwise the field key
+     */
+    public function getWhoisProtectionFieldKey()
+    {
+        $fields = $this->getFields();
+        foreach ($fields as $fieldKey => $values) {
+            if ($this->getConfigValue($fieldKey, "Name") === "ID Protection") {
+                return $fieldKey;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Checks if given domain name's WHOIS data is currently protected
      * NOTE: we cannot use fieldKey 0 directly as default whmcs fields are increasing it even though removed
      * So searching for the right field name is a must.
@@ -1664,36 +1678,31 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      */
     public function isWhoisProtected()
     {
-        $protected = false;
-        $fields = $this->getFields();
-        foreach ($fields as $fieldKey => $values) {
-            if ($this->getConfigValue($fieldKey, "Name") === "ID Protection") {
-                if (!preg_match("/-DISCLOSE$/i", $this->getConfigValue($fieldKey, "Ispapi-Name"))) {
-                    return (bool)$this->getFieldValue($fieldKey);
-                }
-                return !(bool)$this->getFieldValue($fieldKey);
+        $fieldKey = $this->getWhoisProtectionFieldKey();
+        if ($fieldKey !== false) {
+            if (!preg_match("/-DISCLOSE$/i", $this->getConfigValue($fieldKey, "Ispapi-Name"))) {
+                return (bool)$this->getFieldValue($fieldKey);
             }
+            return !(bool)$this->getFieldValue($fieldKey);
         }
         return false;
     }
 
     /**
      * Reflect the desired registry-side WHOIS Privacy Service changes in command accordingly
+     * Works in case domain type is set to `whoisprivacy`
      * @param array $command API Command to update
      * @param string $idprotection desired new whois privacy status
      */
     public function addWhoisProtectiontoCommand(&$command, $idprotection)
     {
-        $fields = $this->getFields();
-        foreach ($fields as $fieldKey => $values) {
-            if ($this->getConfigValue($fieldKey, "Name") === "ID Protection") {
-                $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
-                if (preg_match("/-DISCLOSE$/i", $iname)) {
-                    $command[$iname] = $idprotection ? "0" : "1";
-                } else {
-                    $command[$iname] = $idprotection;
-                }
-                break;
+        $fieldKey = $this->getWhoisProtectionFieldKey();
+        if ($fieldKey !== false){
+            $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
+            if (preg_match("/-DISCLOSE$/i", $iname)) {
+                $command[$iname] = $idprotection ? "0" : "1";
+            } else {
+                $command[$iname] = $idprotection;
             }
         }
     }
