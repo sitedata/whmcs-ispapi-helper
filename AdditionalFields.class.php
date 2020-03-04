@@ -1697,7 +1697,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
     public function addWhoisProtectiontoCommand(&$command, $idprotection)
     {
         $fieldKey = $this->getWhoisProtectionFieldKey();
-        if ($fieldKey !== false){
+        if ($fieldKey !== false) {
             $iname = $this->getConfigValue($fieldKey, "Ispapi-Name");
             if (preg_match("/-DISCLOSE$/i", $iname)) {
                 $command[$iname] = $idprotection ? "0" : "1";
