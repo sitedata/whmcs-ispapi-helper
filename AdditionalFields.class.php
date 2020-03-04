@@ -563,10 +563,11 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
                 ],
                 ".nu" => [
                     self::getRegulatedTLDField(".nu"),
-                    self::getContactIdentificationField("REGISTRANT"),
+                    self::getContactIdentificationField("REGISTRANT", [ "Description" => "nutldregistrantidnumberdescr"]),
                     self::getVATIDField(".nu", "REGISTRANT", [
-                        'Required' => false,
-                        "Ispapi-Name" => "X-VATID"
+                        "Required" => false,
+                        "Ispapi-Name" => "X-VATID",
+                        "Description" => "nutldvatiddescr"
                     ])
                 ],
                 ".nyc" => [
