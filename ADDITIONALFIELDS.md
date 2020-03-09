@@ -11,7 +11,7 @@ Target of this documentation is to basically combine the standard [WHMCS Documen
 * Wrong Dropdown List Entry pre-selected, should be the first one with empty value. [#PHW-648709](https://www.whmcs.com/members/viewticket.php?tid=PHW-648709&c=VtIFzrAa)
 * Dropdown List Entry with `falsy` value is returned as `missing` in submission when field is configured as required field. [#CORE-14277](https://www.whmcs.com/members/viewticket.php?tid=WRJ-298239&c=PtkKH0Ck)
 * Feature Request [`Ability to separate registration additional fields from transfer additional fields`](https://requests.whmcs.com/topic/ability-to-separate-registration-additional-fields-from-transfer-additional-field)
-* Feature Request [`Finalize translation support for additional domain fields`](https://requests.whmcs.com/topic/finalize-translation-support-for-additional-domain-fields)
+* Rejected Feature Request [`Finalize translation support for additional domain fields`](https://requests.whmcs.com/topic/finalize-translation-support-for-additional-domain-fields)
 
 Feel free to upvote the feature requests - very appreciated!
 
@@ -60,24 +60,18 @@ Any other customizing of additional domain fields on customer's side should happ
 Based on the standard [WHMCS Documentation](https://docs.whmcs.com/Additional_Domain_Fields) section `Translating a Field Name`, follow the below steps to get it realized the best.
 We suggest the below way instead of copy'n'paste of the contents, because in that way, you don't have to care about updating our translations any longer.
 
-* Find language files listed [here](https://github.com/hexonet/whmcs-ispapi-registrar/tree/master/registrars/ispapi/lang/overrides)
-* Create your desired language file in folder `/lang/overrides` of your WHMCS Installation if not existing yet - described [here](https://developers.whmcs.com/languages/overrides/)
+* Find language files in folder `install/registrars/ispapi/lang/overrides` of your downloaded archive
+* Create your desired language file in folder `/lang/overrides` of your WHMCS Installation if not existing yet - as described [here](https://developers.whmcs.com/languages/overrides/)
 * Ensure the file content starts with `<?php`.
 * Add line e.g. `include implode(DIRECTORY_SEPARATOR, [ROOTDIR, "modules", "registrars", "ispapi", "lang", "overrides", "english.php" ]);` to the english file.
 
-Do this for every language file we offer, but change the file name in the above code snippet accordingly.
-Do this for every language file we do not offer, but use the above line unchanged - this ensures the fallback to english.
+Do this for every language you offer, but change the file name in the above code snippet accordingly.
 
 **NOTE:** Even though translating the `Description` or `Options` field is not possible by WHMCS built-in configuration parameters for additional fields ([see](https://requests.whmcs.com/topic/finalize-translation-support-for-additional-domain-fields)), we have found a generic solution for exactly that! Please note that you should **not** modify our translation files. Let us know if you need something changed, we can support. Just open a github issue - we will care about it in short! In case you're missing a language file, feel free to work on a Pull Request to get it added. Your Support is very appreciated!
 
 Done!
 
-```php
-// example for the english part
-include implode(DIRECTORY_SEPARATOR, [ROOTDIR, 'modules', 'registrars', 'ispapi', 'lang', 'overrides', 'english.php'])
-```
-
-We have translation files available for `english`, `germnan`, `french`. If you offer further languages to your customers, please ensure to have this then also rolled out for these files by just including our english translation file instead. In that way you can ensure to have a fallback made to english. Feel free to work on a translation and forward changes / new languages in our direction by pull request.
+We have translation files available for `arabic`, `english`, `germnan` and `french`. For all other languages we just fallback to english. Feel free to work on translations and forward changes / new languages to our hands by pull request or github issue. Also partial translations are welcome!
 
 ### Nomenclature of translation IDs
 
