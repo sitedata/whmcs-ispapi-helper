@@ -943,6 +943,8 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
      */
     public static function getAdditionalDomainFields(array $params)
     {
+        // TODO Review in case params["type"] is no longer always "register";
+        //      Review static method addToCMD
         $tld = $params["tld"];
         $type = $params["type"];
     
