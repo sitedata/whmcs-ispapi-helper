@@ -326,7 +326,7 @@ class Ispapi
     public static function init($config)
     {
         self::$config = $config;
-        if (!isset($_SESSION["ispapidatattl"])){
+        if (!isset($_SESSION["ispapidatattl"])) {
             $_SESSION["ispapidatattl"] = mktime() + 3600;
         } elseif (mktime() >  $_SESSION["ispapidatattl"]) {
             $_SESSION["ispapidatattl"] = mktime() + 3600;
