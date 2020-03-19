@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.3...v2.13.0) (2020-03-19)
+
+
+### Features
+
+* **pricingsync:** initial release; to be refactored ([7838b38](https://github.com/hexonet/whmcs-ispapi-helper/commit/7838b385be924b7a4f612445dea62d4936e25dd8))
+
 ## [2.12.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.2...v2.12.3) (2020-03-02)
 
 
