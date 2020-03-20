@@ -416,27 +416,27 @@ class Ispapi
             $nfclasses[] = $tlds[$tld];
         }
         $tldsinv = array_flip($tlds);
-        $rbase = "PRICE_CLASS_DOMAIN_(" . implode($nfclasses,"|") . ")_(TRANSFER|RESTORE|SETUP|ANNUAL|CURRENCY)";
+        $rbase = "PRICE_CLASS_DOMAIN_(" . implode($nfclasses, "|") . ")_(TRANSFER|RESTORE|SETUP|ANNUAL|CURRENCY)";
         $relations = UserRelationModel::whereRaw("type REGEXP '^" . $rbase . "[0-9]*$'")->get();
         foreach ($relations as $relation) {
             preg_match("/^$rbase([1-9][0-9]*)?$/", $relation->type, $m);
             $tld = $tldsinv[$m[1]];
-            if (empty($tld)){
-                throw new \Exception($relation->type . nl2br(print_r($m, true)));        
+            if (empty($tld)) {
+                throw new \Exception($relation->type . nl2br(print_r($m, true)));
             }
-            if (!isset($_SESSION["ispapitldprices"][$tld])){
+            if (!isset($_SESSION["ispapitldprices"][$tld])) {
                 $tmp = [ "CURRENCY" => $_SESSION["ispapiaccountcurrency"] ];
             } else {
                 $tmp = $_SESSION["ispapitldprices"][$tld];
             }
             
-            if ($m[2]=="CURRENCY"){
+            if ($m[2]=="CURRENCY") {
                 $tmp[$m[2]] = $relation->value;
             } else {
-                if (!isset($tmp[$m[2]])){
+                if (!isset($tmp[$m[2]])) {
                     $tmp[$m[2]] = [];
                 }
-                if (!isset($m[3])){
+                if (!isset($m[3])) {
                     $tmp[$m[2]]["default"] = (float)$relation->value;
                 } else {
                     $tmp[$m[2]][(int)$m[3]] = (float)$relation->value;
