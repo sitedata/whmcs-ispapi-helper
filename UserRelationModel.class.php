@@ -15,7 +15,7 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
 
     public static function hasTable()
     {
-        return \WHMCS\Database\Capsule::schema()->isTableExising('ispapi_tblrelations');
+        return \WHMCS\Database\Capsule::schema()->hasTable('ispapi_tblrelations');
     }
 
     public static function createTable()
@@ -27,12 +27,5 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
             $table->unique('type');
             $table->index('type');
         });
-        self::create(['type' => '_RELATION_TTL', 'value' => mktime() + self::$myttl]);
-    }
-
-    public static function truncate()
-    {
-        parent::truncate();
-        self::create(['type' => '_RELATION_TTL', 'value' => mktime() + self::$myttl]);
     }
 }

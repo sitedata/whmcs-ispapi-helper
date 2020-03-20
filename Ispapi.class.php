@@ -2,6 +2,7 @@
 
 namespace ISPAPI;
 
+include(implode(DIRECTORY_SEPARATOR, [__DIR__, "UserRelationModel.class.php"]));
 class Ispapi
 {
     public static $tldclassmap = [
@@ -323,51 +324,41 @@ class Ispapi
 
     public static $config = null;
 
+    public static $ttl = 3600; // 1h
+
     public static function init($config)
     {
         self::$config = $config;
-        if (!isset($_SESSION["ispapidatattl"])) {
-            $_SESSION["ispapidatattl"] = mktime() + 3600;
-        } elseif (mktime() >  $_SESSION["ispapidatattl"]) {
-            $_SESSION["ispapidatattl"] = mktime() + 3600;
+        if (!UserRelationModel::hasTable()) {
+            $ttl = UserRelationModel::createTable();
+        }
+        if (!isset($_SESSION["ispapidatattl"]) || (mktime() >  $_SESSION["ispapidatattl"])) {
+            $_SESSION["ispapidatattl"] = mktime() + self::$ttl;
             unset(
-                $_SESSION["ispapirelations"],
                 $_SESSION["ispapiaccountcurrency"],
                 $_SESSION["ispapitldprices"],
                 $_SESSION["ispapitldconfiguration"]
             );
+            UserRelationModel::truncate();
         }
     }
-
-    /*public static function init($config)
-    {
-        self::$config = $config;
-        // Create table.
-        if (!UserRelationModel::isTableExising()) {
-            $ttl = UserRelationModel::createTable();
-        }
-        // check TTL and delete rows when ttl too old
-        $ttl = UserRelationModel::where('type', '_RELATION_TTL')->first();
-        if ($ttl->value < mktime()){
-            UserRelationModel::truncate();
-            UserRelationModel::addTTL();
-        }
-    }*/
 
     public static function loadPrices()
     {
         //load user relations into session
-        if (!isset($_SESSION["ispapirelations"])) {
+        if (!UserRelationModel::first()) {
             $r = ispapi_call(["COMMAND" => "StatusUser"], self::$config);
             if ($r["CODE"] != "200") {
                 return false;
             }
-            $_SESSION["ispapirelations"] = [];
-            $regexp = "/^PRICE_CLASS_DOMAIN_" . self::$tldclassfilter . "_/";
-            $list = preg_grep($regexp, $r["PROPERTY"]["RELATIONTYPE"], PREG_GREP_INVERT);
-            foreach ($list as $idx => &$t) {
-                $_SESSION["ispapirelations"][$t] = $r["PROPERTY"]["RELATIONVALUE"][$idx];
+            //$regexp = "/^PRICE_CLASS_DOMAIN_" . self::$tldclassfilter . "_/";
+            //$list = preg_grep($regexp, $r["PROPERTY"]["RELATIONTYPE"], PREG_GREP_INVERT);
+            $inserts = [];
+            //foreach ($list as $idx => &$t) {
+            foreach ($r["PROPERTY"]["RELATIONTYPE"] as $idx => &$t) {
+                $inserts[] = ["type" => $t, "value" => $r["PROPERTY"]["RELATIONVALUE"][$idx]];
             }
+            UserRelationModel::insert($inserts);
             $_SESSION["ispapiaccountcurrency"] = $r["PROPERTY"]["ACCOUNTCURRENCY"][0];
         }
         return true;
@@ -380,22 +371,26 @@ class Ispapi
                'error' => 'Could not get user status from registrar API.'
             ];
         }
-        $rtypes = preg_grep("/^PRICE_CLASS_DOMAIN_[^_]+_CURRENCY$/", array_keys($_SESSION["ispapirelations"]));
-        $tldclasses = preg_replace("/(^PRICE_CLASS_DOMAIN_|_CURRENCY$)/", "", array_values($rtypes));
         $tlds = [];
-        foreach ($tldclasses as $tldclass) {
+        $relations = UserRelationModel::selectRaw("*, REPLACE(REPLACE(type, 'PRICE_CLASS_DOMAIN_', ''), '_CURRENCY', '') AS tldclass")
+                        ->whereRaw("type regexp '^PRICE_CLASS_DOMAIN_[^_]+_CURRENCY$'")
+                        ->whereRaw("type not regexp '^PRICE_CLASS_DOMAIN_" . self::$tldclassfilter . "_'")
+                        ->get();
+        
+        foreach ($relations as $relation) {
             //if (preg_match("/^XN--/", $tldclass)) {
             //    if (isset(self::$idntldclassmap[$tldclass])) {
             //        $tlds[self::$idntldclassmap[$tldclass]] = $tldclass;
             //    }
             //} else {
-            if (isset(self::$tldclassmap[$tldclass])) {
-                $tlds[self::$tldclassmap[$tldclass]] = $tldclass;
+            if (isset(self::$tldclassmap[$relation->tldclass])) {
+                $tlds[self::$tldclassmap[$relation->tldclass]] = $relation->tldclass;
             } else {
-                $tlds["." . strtolower($tldclass)] = $tldclass;
+                $tlds["." . strtolower($relation->tldclass)] = $relation->tldclass;
             }
             //}
         }
+        throw new \Exception(nl2br(print_r($tlds, true)));
         return $tlds;
     }
 
