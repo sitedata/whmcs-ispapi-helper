@@ -288,8 +288,9 @@ class Ispapi
         'ZACOM' => '.za.com'
     ];
 
+    //NOTE: deactivated as not yet officially supported by WHMCS
     //this could get replaced by using CONVERTIDN command
-    public static $idntldclassmap = [
+    /*public static $idntldclassmap = [
         "XN--3DS443G" => ".在线",
         "XN--5TZM5G" => ".网站",
         "XN--6FRZ82G" => ".移动",
@@ -317,7 +318,7 @@ class Ispapi
         "XN--Y9A3AQ" => ".հայ",
         "XN--NGBC5AZD" => ".شبكة",
         "XN--WGBL6A" => ".قطر"
-    ];
+    ];*/
 
     //NOTE: filter out IDN TLDs as not yet officially supported by WHMCS (first part of regex)
     public static $tldclassfilter = "(XN--[^_]+|MANDATE--SWISS|DOMAINALERT|TESTDNSERVICESCOZA|TLDBOX|NAME|NAMEEMAIL|DPMLPUB|DPMLZONE|[^_]+(REGIONAL|IDN(TLD(ASCII)?)?|(CHARS|NUMBERS)[0-9]*))";
@@ -345,16 +346,13 @@ class Ispapi
 
     public static function loadPrices()
     {
-        //load user relations into session
+        //load user relations into db
         if (!UserRelationModel::first()) {
             $r = ispapi_call(["COMMAND" => "StatusUser"], self::$config);
             if ($r["CODE"] != "200") {
                 return false;
             }
-            //$regexp = "/^PRICE_CLASS_DOMAIN_" . self::$tldclassfilter . "_/";
-            //$list = preg_grep($regexp, $r["PROPERTY"]["RELATIONTYPE"], PREG_GREP_INVERT);
             $inserts = [];
-            //foreach ($list as $idx => &$t) {
             foreach ($r["PROPERTY"]["RELATIONTYPE"] as $idx => &$t) {
                 $inserts[] = ["type" => $t, "value" => $r["PROPERTY"]["RELATIONVALUE"][$idx]];
             }
@@ -372,7 +370,7 @@ class Ispapi
             ];
         }
         $tlds = [];
-        $relations = UserRelationModel::selectRaw("*, REPLACE(REPLACE(type, 'PRICE_CLASS_DOMAIN_', ''), '_CURRENCY', '') AS tldclass")
+        $relations = UserRelationModel::selectRaw("REPLACE(REPLACE(type, 'PRICE_CLASS_DOMAIN_', ''), '_CURRENCY', '') AS tldclass")
                         ->whereRaw("type regexp '^PRICE_CLASS_DOMAIN_[^_]+_CURRENCY$'")
                         ->whereRaw("type not regexp '^PRICE_CLASS_DOMAIN_" . self::$tldclassfilter . "_'")
                         ->get();
@@ -390,19 +388,20 @@ class Ispapi
             }
             //}
         }
-        throw new \Exception(nl2br(print_r($tlds, true)));
         return $tlds;
     }
 
     public static function initTLDPrices($tlds)
     {
-        if (!isset($_SESSION["ispapirelations"])) {
+        if (!UserRelationModel::first()) {
             return [
                'error' => 'Load prices first from registrar API.'
             ];
         }
 
         // built list of tlds we have to calculate prices for
+        unset($_SESSION["ispapitldprices"]);
+
         if (!isset($_SESSION["ispapitldprices"])) {
             $_SESSION["ispapitldprices"] = [];
             $nflist = array_keys($tlds);
@@ -412,38 +411,40 @@ class Ispapi
         }
 
         // calculate prices for outstanding TLDs
-        $allrelationkeys = array_keys($_SESSION["ispapirelations"]);
+        $nfclasses = [];
         foreach ($nflist as $tld) {
-            $rbase = "PRICE_CLASS_DOMAIN_" . $tlds[$tld] . "_";
+            $nfclasses[] = $tlds[$tld];
+        }
+        $tldsinv = array_flip($tlds);
+        $rbase = "PRICE_CLASS_DOMAIN_(" . implode($nfclasses,"|") . ")_(TRANSFER|RESTORE|SETUP|ANNUAL|CURRENCY)";
+        $relations = UserRelationModel::whereRaw("type REGEXP '^" . $rbase . "[0-9]*$'")->get();
+        foreach ($relations as $relation) {
+            preg_match("/^$rbase([1-9][0-9]*)?$/", $relation->type, $m);
+            $tld = $tldsinv[$m[1]];
+            if (empty($tld)){
+                throw new \Exception($relation->type . nl2br(print_r($m, true)));        
+            }
+            if (!isset($_SESSION["ispapitldprices"][$tld])){
+                $tmp = [ "CURRENCY" => $_SESSION["ispapiaccountcurrency"] ];
+            } else {
+                $tmp = $_SESSION["ispapitldprices"][$tld];
+            }
             
-            $tmp = [
-                "currency" => isset($_SESSION["ispapirelations"][$rbase . "CURRENCY"]) ?
-                    $_SESSION["ispapirelations"][$rbase . "CURRENCY"] :
-                    $_SESSION["ispapiaccountcurrency"]
-            ];
-            $pkeys = [
-                "TRANSFER" => "transfer",
-                "RESTORE" => "redemption",
-                "SETUP" => "registration",
-                "ANNUAL" => "renewal"
-            ];
-            foreach ($pkeys as $type => $pkey) {
-                if (!isset($tmp[$pkey])) {
-                    $tmp[$pkey] = [];
+            if ($m[2]=="CURRENCY"){
+                $tmp[$m[2]] = $relation->value;
+            } else {
+                if (!isset($tmp[$m[2]])){
+                    $tmp[$m[2]] = [];
                 }
-                $rtypes = preg_grep("/^" . $rbase . $type . "([0-9]+)?$/", $allrelationkeys);
-                foreach ($rtypes as $tkey) {
-                    if (preg_match("/_" . $type . "([0-9]+)$/", $tkey, $m)) {
-                        if ($m[1]) { //no 0Y
-                            $tmp[$pkey][(int)$m[1]] = (float)$_SESSION["ispapirelations"][$tkey];
-                        }
-                    } else {
-                        $tmp[$pkey]["default"] = (float)$_SESSION["ispapirelations"][$tkey];
-                    }
+                if (!isset($m[3])){
+                    $tmp[$m[2]]["default"] = (float)$relation->value;
+                } else {
+                    $tmp[$m[2]][(int)$m[3]] = (float)$relation->value;
                 }
             }
             $_SESSION["ispapitldprices"][$tld] = $tmp;
         }
+        throw new \Exception(nl2br(print_r($_SESSION["ispapitldprices"], true)));
 
         // return price list for all requested tlds
         $results = [];
@@ -456,7 +457,7 @@ class Ispapi
     public static function getTLDPrices($tld, $minPeriod)
     {
         static $defaultcurrency = null;
-        $apicurrency = $_SESSION["ispapitldprices"][$tld]["currency"];
+        $apicurrency = $_SESSION["ispapitldprices"][$tld]["CURRENCY"];
         $prices = [
             "registration" => self::getRegistrationPrice($tld, $minPeriod),
             "renewal" => self::getRenewalPrice($tld, $minPeriod),
@@ -464,9 +465,8 @@ class Ispapi
             "redemption" => self::getRedemptionPrice($tld, $minPeriod),
         ];
         // check if currency exists, otherwise we have to convert to default currency
-        $currency = \WHMCS\Database\Capsule::table("tblcurrencies")->where("code", $apicurrency)->first();
-        if (is_null($currency)) {
-            if (is_null($defaultcurrency)) {
+        if (!\WHMCS\Database\Capsule::table("tblcurrencies")->where("code", $apicurrency)->first()) {
+            if (!$defaultcurrency) {
                 $defaultcurrency = (get_query_vals("tblcurrencies", "code", ["`default`" => "1"]))["code"];
             }
             foreach ($prices as $key => $val) {
@@ -501,56 +501,49 @@ class Ispapi
         return ($val / $rates[$currFrom]) * $rates[$currTo];
     }
 
-    public static function getTLDPriceForType($type, $tld, $period)
+    public static function getRegistrationPrice($tld, $period)
     {
         $tmp = $_SESSION["ispapitldprices"][$tld];
-        if ($type === "annual") {
-            if (isset($tmp[$type][$period])) {
-                return $tmp[$type][$period];
-            }
-            if (isset($tmp[$type]["default"])) {
-                return ($period * $tmp[$type]["default"]);
-            }
-        } elseif ($type === "redemption") {
-            if (isset($tmp[$type]["default"])) {
-                return $tmp[$type]["default"];
-            }
-        } elseif ($type === "registration") {
-            if (isset($tmp[$type][$period]) && isset($tmp["renewal"][$period])) {
-                return ($tmp[$type][$period] + $tmp["renewal"][$period]);
-            }
-            if (isset($tmp[$type]["default"]) && isset($tmp["renewal"]["default"])) {
-                return ($tmp[$type]["default"] + ($period * $tmp["renewal"]["default"]));
-            }
-        } else {
-            if (isset($tmp[$type][$period])) {
-                return $tmp[$type][$period];
-            }
-            if (isset($tmp[$type]["default"])) {
-                return ($period * $tmp[$type]["default"]);
-            }
+        if (isset($tmp["SETUP"][$period]) && isset($tmp["ANNUAL"][$period])) {
+            return ($tmp["SETUP"][$period] + $tmp["ANNUAL"][$period]);
+        }
+        if (isset($tmp["SETUP"]["default"]) && isset($tmp["ANNUAL"]["default"])) {
+            return ($tmp["SETUP"]["default"] + ($period * $tmp["ANNUAL"]["default"]));
         }
         return null;
     }
 
-    public static function getRegistrationPrice($tld, $period)
-    {
-        return self::getTLDPriceForType("registration", $tld, $period);
-    }
-
     public static function getRenewalPrice($tld, $period)
     {
-        return self::getTLDPriceForType("renewal", $tld, $period);
+        $tmp = $_SESSION["ispapitldprices"][$tld];
+        if (isset($tmp["ANNUAL"][$period])) {
+            return $tmp["ANNUAL"][$period];
+        }
+        if (isset($tmp["ANNUAL"]["default"])) {
+            return ($period * $tmp["ANNUAL"]["default"]);
+        }
+        return null;
     }
 
     public static function getTransferPrice($tld, $period)
     {
-        return self::getTLDPriceForType("transfer", $tld, $period);
+        $tmp = $_SESSION["ispapitldprices"][$tld];
+        if (isset($tmp["TRANSFER"][$period])) {
+            return $tmp["TRANSFER"][$period];
+        }
+        if (isset($tmp["TRANSFER"]["default"])) {
+            return ($period * $tmp["TRANSFER"]["default"]);
+        }
+        return null;
     }
 
     public static function getRedemptionPrice($tld, $period)
     {
-        return self::getTLDPriceForType("redemption", $tld, $period);
+        $tmp = $_SESSION["ispapitldprices"][$tld];
+        if (isset($tmp["RESTORE"]["default"])) {
+            return $tmp["RESTORE"]["default"];
+        }
+        return null;
     }
 
     public static function getTLDConfigurations($tlds)
