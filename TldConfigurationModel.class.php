@@ -10,7 +10,7 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
      */
     protected $table = 'ispapi_tbltldconfigurations';
     public $timestamps = false;
-    protected $fillable = ['tld', 'tldclass', 'periods_registration', 'periods_transfer', 'periods_renewal', 'repository', 'authRequired', 'idprotection'];
+    protected $fillable = ['tld', 'tldclass', 'periods', 'periods', 'periods', 'repository', 'authRequired', 'idprotection'];
 
     public static function hasTable()
     {
@@ -28,9 +28,7 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
                 $table->string('tldclass');
                 $table->index('tldclass');
                 $table->unique('tldclass');
-                $table->string('periods_registration');
-                $table->string('periods_transfer');
-                $table->string('periods_renewal');
+                $table->json('periods')->nullable();
                 $table->string('repository');
                 $table->boolean('authRequired');
                 $table->boolean('idprotection');
@@ -48,9 +46,11 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
             $inserts[] = [
                 "tld" => $tlds[$idx],
                 "tldclass" => $tldclassmap[$tlds[$idx]],
-                "periods_registration" => $apiresponse["ZONEREGISTRATIONPERIODS"][$idx],
-                "periods_transfer" => $apiresponse["ZONETRANSFERPERIODS"][$idx],
-                "periods_renewal" => $apiresponse["ZONERENEWALPERIODS"][$idx],
+                "periods" => json_encode([
+                    "registration" => self::formatPeriods($apiresponse["ZONEREGISTRATIONPERIODS"][$idx]),
+                    "transfer" => self::formatPeriods($apiresponse["ZONETRANSFERPERIODS"][$idx]),
+                    "renewal" => self::formatPeriods($apiresponse["ZONERENEWALPERIODS"][$idx])
+                ]),
                 "repository" => $apiresponse["REPOSITORY"][$idx],
                 "authRequired" => ($apiresponse["REGISTRYTRANSFERREQUIREAUTHCODE"][$idx] === "YES"),
                 "idprotection" => in_array("WHOISTRUSTEE", explode(" ", $apiresponse["X-PROXY"][$idx]))
@@ -67,9 +67,6 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
                 ->whereRaw("tld REGEXP '^(" . implode("|", $tlds) . ")$'")->get();
         $results = [];
         foreach ($cfgs as $cfg) {
-            $cfg->periods_registration = self::formatPeriods($cfg->periods_registration);
-            $cfg->periods_renewal = self::formatPeriods($cfg->periods_renewal);
-            $cfg->periods_transfer = self::formatPeriods($cfg->periods_transfer);
             $results[$cfg->tld] = $cfg;
         }
         return $results;
@@ -99,22 +96,30 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
         return array_diff(array_keys($tldclasses), $found);
     }
 
+    public function setPeriodsAttribute($value)
+    {
+        $this->attributes['periods'] = json_encode($value);
+    }
 
+    public function getPeriodsAttribute($value)
+    {
+        return json_decode($value, true);
+    }
 
     public function getMinRegistrationPeriod()
     {
-        return self::formatPeriods($this->periods_registration)[0];
+        return $this->periods["registration"][0];
     }
 
     public function getMaxRegistrationPeriod()
     {
-        $tmp = self::formatPeriods($this->periods_registration);
+        $tmp = $this->periods["registration"];
         return $tmp[count($tmp) - 1];
     }
 
     public function getYearsStep()
     {
-        $periods = self::formatPeriods($this->periods_registration);
+        $periods = $this->periods["registration"];
         $pmin = $periods[0];
         $pnext = $pmin + 1;
         $idxmax = count($periods) - 1;

@@ -10,7 +10,7 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
      */
     protected $table = 'ispapi_tblrelations';
     public $timestamps = false;
-    protected $fillable = ['relation_type', 'relation_value', 'relation_category',  'relation_subcategory', 'relation_subclass'];
+    protected $fillable = ['relation_type', 'relation_value', 'relation_category',  'relation_subcategory', 'relation_subclass', 'relation_period'];
     
     //NOTE: filter out IDN TLDs as not yet officially supported by WHMCS (first part of regex)
     public static $tldclassfilter = "(XN--[^_]+|MANDATE--SWISS|TESTDNSERVICESCOZA|TLDBOX|NAME|NAMEEMAIL|DPMLPUB|DPMLZONE|[^_]+(REGIONAL|IDN(TLD(ASCII)?)?|(CHARS|NUMBERS)[0-9]*))";
@@ -36,6 +36,7 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
                 $table->string('relation_type');
                 $table->unique('relation_type');
                 $table->index('relation_type');
+                $table->tinyInteger('relation_period')->nullable();
             });
         }
     }
@@ -50,10 +51,11 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
             $insert = [
                 "relation_type" => $t,
                 "relation_value" => $apiresponse["RELATIONVALUE"][$idx],
-                "relation_category" => self::getRelationCategory($t),
-                "relation_subclass" => self::getSubclassByRelation($t)
+                "relation_category" => self::parseRelationCategory($t),
+                "relation_subclass" => self::parseRelationSubclass($t),
+                "relation_period" => self::parsePeriod($t)
             ];
-            $insert["relation_subcategory"] = self::getRelationSubcategory($t, $insert["relation_category"]);
+            $insert["relation_subcategory"] = self::parseRelationSubcategory($t, $insert["relation_category"]);
             $inserts[] = $insert;
         }
         foreach (array_chunk($inserts, 1000) as $t) {
@@ -61,7 +63,7 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
         }
     }
 
-    public static function getRelationCategory($type)
+    private static function parseRelationCategory($type)
     {
         if (preg_match("/^PRICE_CLASS_" . self::$categoryRegexp . "_/", $type, $m)) {
             return str_replace("_", "", $m[1]) . "_PRICE";
@@ -72,28 +74,28 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
         return "";
     }
 
-    public static function getRelationSubcategory($type, $category)
+    private static function parseRelationSubcategory($type, $category)
     {
         if ($category === "DOMAIN_PRICE") {
-            if (preg_match("/^PRICE_CLASS_DOMAIN_[^_]+_BACKORDER_/", $type)) {
-                return "BACKORDER";
-            }
-            if (preg_match("/^PRICE_CLASS_DOMAIN_[^_]+_LITEBACKORDER_/", $type)) {
-                return "LITEBACKORDER";
-            }
             if (preg_match("/^PRICE_CLASS_DOMAIN_[^_]+_DPML(PUB|ZONE)_/", $type)) {
                 return "DPML";
             }
             if (preg_match("/^PRICE_CLASS_DOMAIN_[^_]+_(EOI|EARLYACCESS[0-9]+|GOLIVE|SUNRISE|LANDRUSH)_/", $type)) {
                 return "PREREG";
             }
+            if (preg_match("/([^_]+_(PROMO|SCALE))[0-9]*$/", $type, $m)) {
+                return preg_replace("/[0-9]+/", "", $m[1]); //SETUP<p>_PROMO, SETUP_SCALE<p>
+            }
+            if (preg_match("/^PRICE_CLASS_DOMAIN_[^_]+_(ANNUAL|[^_]+ACKORDER|CURRENCY|RESTORE|SETUP|TRADE|TRANSFER)([0-9]*|_.+)$/", $type, $m)) {
+                return $m[1];
+            }
         }
         if ($category === "DOMAINPREMIUM_PRICE") {
-            if (preg_match("/^PRICE_CLASS_DOMAIN_PREMIUM_.+_BACKORDER_/", $type)) {
-                return "BACKORDER";
+            if (preg_match("/([^_]+_(PROMO|SCALE))[0-9]*$/", $type, $m)) {
+                return preg_replace("/[0-9]+/", "", $m[1]); //SETUP<p>_PROMO, SETUP_SCALE<p>
             }
-            if (preg_match("/^PRICE_CLASS_DOMAIN_PREMIUM_.+_LITEBACKORDER_/", $type)) {
-                return "LITEBACKORDER";
+            if (preg_match("/^PRICE_CLASS_DOMAIN_PREMIUM_.+_(ANNUAL|[^_]+ACKORDER|CURRENCY|RESTORE|SETUP|TRADE|TRANSFER)([0-9]*|_.+)$/", $type, $m)) {
+                return $m[1];
             }
             if (preg_match("/^PRICE_CLASS_DOMAIN_PREMIUM_.+_(EOI|EARLYACCESS[0-9]+|GOLIVE|SUNRISE|LANDRUSH)_/", $type)) {
                 return "PREREG";
@@ -103,7 +105,7 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
         return "";
     }
 
-    public static function getSubclassByRelation($t)
+    private static function parseRelationSubclass($t)
     {
         if (preg_match("/^PRICE_CLASS_([^_]+_)?DOMAIN_([^_]+)_/", $t, $m)) {
             return $m[2];
@@ -111,28 +113,32 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
         return "";
     }
 
+    private static function parsePeriod($relationType)
+    {
+        if (preg_match("/_[^_0-9]+([0-9]+)(_PROMO)?$/", $relationType, $m)) {
+            return (int)$m[1];
+        }
+        return null;
+    }
+
     public static function getTLDList()
     {
         return self::where("relation_category", "DOMAIN_PRICE")
-                    ->where("relation_subcategory", "")
-                    ->whereRaw("relation_type LIKE '%CURRENCY'")
+                    ->whereRaw("relation_subcategory REGEXP '^(TRANSFER|SETUP|CURRENCY|ANNUAL|RESTORE)[0-9]*$'")
                     ->whereRaw("relation_subclass NOT REGEXP '^" . self::$tldclassfilter . "$'")
                     ->get();
     }
 
-    public static function getDomainPriceRelations($tldclasses)
+    public static function getDomainPriceRelations()
     {
         return self::where("relation_category", "DOMAIN_PRICE")
-            ->where("relation_subcategory", "")
+            ->whereRaw("relation_subcategory REGEXP '^(TRANSFER|SETUP|CURRENCY|ANNUAL|RESTORE)[0-9]*$'")
             ->whereRaw("relation_subclass NOT REGEXP '^" . self::$tldclassfilter . "$'")
-            ->whereRaw("relation_type REGEXP '_(TRANSFER|RESTORE|SETUP|ANNUAL|CURRENCY)[0-9]*$'")->get();
+            ->get();
     }
 
     public function getPeriod()
     {
-        if (preg_match("/([0-9]+)$/", $this->relation_type, $m)) {
-            return (int)$m[1];
-        }
-        return "default";
+        return is_null($this->relation_period) ? "default" : $this->relation_period;
     }
 }
