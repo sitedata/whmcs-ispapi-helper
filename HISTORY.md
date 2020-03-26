@@ -1,3 +1,10 @@
+## [2.13.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.0...v2.13.1) (2020-03-26)
+
+
+### Bug Fixes
+
+* **tldpricingsync:** fix issues with 7.10 RC1 ([689b16e](https://github.com/hexonet/whmcs-ispapi-helper/commit/689b16ece1bb4cb1b4ee4f25434d5acec0dfc6dc))
+
 # [2.13.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.12.3...v2.13.0) (2020-03-19)
 
 
