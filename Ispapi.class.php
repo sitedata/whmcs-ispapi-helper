@@ -45,6 +45,7 @@ class Ispapi
         'COKR' => '.co.kr',
         'COLC' => '.co.lc',
         'COMAF' => '.com.af',
+        'COMBR' => '.com.br',
         'COMAG' => '.com.ag',
         'COMAI' => '.com.ai',
         'COMAM' => '.com.am',
@@ -279,6 +280,7 @@ class Ispapi
         'STORENF' => '.store.nf',
         'TELKI' => '.tel.ki',
         'TMFR' => '.tm.fr',
+        'TMSE' => '.tm.se',
         'UKCOM' => '.uk.com',
         'UKNET' => '.uk.net',
         'USCOM' => '.us.com',
@@ -287,6 +289,7 @@ class Ispapi
         'WAWPL' => '.waw.pl',
         'WEBNF' => '.web.nf',
         'WEBVE' => '.web.ve',
+        'WEBZA' => '.web.za',
         'ZACOM' => '.za.com'
     ];
 
@@ -332,7 +335,7 @@ class Ispapi
         UserRelationModel::createTableIfNotExists();
         TldConfigurationModel::createTableIfNotExists();
         TldPriceModel::createTableIfNotExists();
-        //unset($_SESSION["ispapidatattl"]);
+        unset($_SESSION["ispapidatattl"]);
         if (!isset($_SESSION["ispapidatattl"]) || (mktime() >  $_SESSION["ispapidatattl"])) {
             $_SESSION["ispapidatattl"] = mktime() + self::$ttl;
             UserRelationModel::truncate();
