@@ -335,7 +335,7 @@ class Ispapi
         UserRelationModel::createTableIfNotExists();
         TldConfigurationModel::createTableIfNotExists();
         TldPriceModel::createTableIfNotExists();
-        unset($_SESSION["ispapidatattl"]);
+        //unset($_SESSION["ispapidatattl"]);
         if (!isset($_SESSION["ispapidatattl"]) || (mktime() >  $_SESSION["ispapidatattl"])) {
             $_SESSION["ispapidatattl"] = mktime() + self::$ttl;
             UserRelationModel::truncate();
