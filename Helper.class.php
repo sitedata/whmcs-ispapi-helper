@@ -213,7 +213,7 @@ class Helper
         $r = localAPI('GetClientsDetails', array('email' => $email));
         if ($r["result"]=="success") {
             $details = array();
-            return $r["client"];
+            return ["success" => true, "id" => $r["id"], "currency" => $r["currency"]]; //HM-711
         }
         return false;
     }
@@ -250,11 +250,23 @@ class Helper
         if (!empty($contact["STREET"][1])) {
             $request["address2"] = $contact["STREET"][1];
         }
+        //client's custom field name from tblcustomfields (for vat id)
+        $customfield = self::SQLCall("SELECT fieldname FROM tblcustomfields WHERE fieldname LIKE '%vat%'");
+
+        if ($customfield['success'] && !empty($customfield['result']['fieldname'])) {
+            $customfields = array(
+                $customfield['result']['fieldname'] => $contact["vat_id"][0]
+            );
+            //Base64 encoded serialized array of custom field values
+            $request["customfields"] = base64_encode(serialize($customfields));
+        }
+
         $r = localAPI('AddClient', $request);
+
         if ($r["result"] == "success") {
             return Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         }
-        return false;
+        return ["success" => false, "errormsg" => $r["message"]];
     }
 
     /**
@@ -448,14 +460,24 @@ class Helper
                 "msgid" => "registrantcreateerrornophone"
             );
         }
+        //vatid (VATID or X-VATID)
+        $contact["vat_id"][0] = '';
+        if ($contact["VATID"][0]) {
+            $contact["vat_id"][0] = $contact["VATID"][0];
+        } else {
+            if ($contact["X-VATID"][0]) {
+                $contact["vat_id"][0] = $contact["X-VATID"][0];
+            }
+        }
+
         $client = Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         if (!$client) {
             $client = Helper::addClient($contact, $currency, $password);
-            if ($client===false) {
+            if (!$client['success']) {
                 return array(
                     "success" => false,
-                    "msgid" => "registrantcreateerror"
-                );
+                    "msgid" => $client['errormsg']
+                 );
             }
         }
         
