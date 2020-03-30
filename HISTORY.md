@@ -1,3 +1,10 @@
+## [2.13.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.1...v2.13.2) (2020-03-30)
+
+
+### Performance Improvements
+
+* **create-client:** improved response messages ([8d53e6d](https://github.com/hexonet/whmcs-ispapi-helper/commit/8d53e6d2ef52eb54474401f53a182f3386261b42))
+
 ## [2.13.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.0...v2.13.1) (2020-03-26)
 
 
