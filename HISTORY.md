@@ -1,3 +1,10 @@
+## [2.13.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.2...v2.13.3) (2020-04-03)
+
+
+### Bug Fixes
+
+* **helper:** fix path to additionalfields class (probably os dependant issue) ([680a460](https://github.com/hexonet/whmcs-ispapi-helper/commit/680a460639d7d736f7ff09a8e5158a669087e8e8))
+
 ## [2.13.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.1...v2.13.2) (2020-03-30)
 
 
