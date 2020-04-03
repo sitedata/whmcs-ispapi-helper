@@ -32,7 +32,6 @@ class Logger
                     }
                 } while (!empty($trace));
 
-                $error = "HTTP communication failed: gergeg curl issue";
                 logModuleCall(
                     $this->additionalData['module'],
                     $action,
