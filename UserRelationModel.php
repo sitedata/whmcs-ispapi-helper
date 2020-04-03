@@ -1,5 +1,5 @@
 <?php
-namespace ISPAPI;
+namespace WHMCS\Module\Registrar\Ispapi;
 
 class UserRelationModel extends \Illuminate\Database\Eloquent\Model
 {

@@ -1,14 +1,9 @@
 <?php
-namespace ISPAPI;
-
-use WHMCS\Database\Capsule;
-use WHMCS_ClientArea;
-use PDO;
+namespace WHMCS\Module\Registrar\Ispapi;
 
 if (defined("ROOTDIR")) {
     require_once(implode(DIRECTORY_SEPARATOR, [ROOTDIR,"includes","registrarfunctions.php"]));
 }
-require_once(implode(DIRECTORY_SEPARATOR, [__DIR__,"AdditionalFields.class.php"]));
 
 /**
  * PHP Helper Class
@@ -19,21 +14,6 @@ class Helper
 {
     public static $currencies = null;
     public static $paymentmethods = null;
-
-    /*
-     * Helper to send API command to the given registrar. Returns the response
-     *
-     * @param string $registrar The registrar
-     * @param string $command The API command to send
-     *
-     * @return array The response from the API
-     */
-    public static function APICall($registrar, $command)
-    {
-        $registrarconfigoptions = getregistrarconfigoptions($registrar);
-        $registrar_config = call_user_func($registrar."_config", $registrarconfigoptions);
-        return call_user_func($registrar."_call", $command, $registrar_config);
-    }
 
     /*
      * Helper to send API Response to the given registrar. Returns the parsed response
@@ -63,9 +43,9 @@ class Helper
      */
     public static function SQLCall($sql, $params = null, $fetchmode = "fetch", $debug = false)
     {
-        $result = array(
+        $result = [
             "success" => false
-        );
+        ];
 
         // replace NULL values with empty string
         // check if this is still necessary after we switched to PHP-SDK
@@ -84,7 +64,7 @@ class Helper
         }
 
         // now execute SQL statement and return result in requested format
-        $pdo = Capsule::connection()->getPdo();
+        $pdo = \WHMCS\Database\Capsule::connection()->getPdo();
         $pdo->beginTransaction();
         try {
             $stmt = $pdo->prepare($sql);
@@ -94,10 +74,10 @@ class Helper
                     // we won't have a result property as not expected
                     break;
                 case "fetchall":
-                    $result["result"] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $result["result"] = $stmt->fetchAll(\PDO::FETCH_ASSOC);
                     break;
                 default:
-                    $result["result"] = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $result["result"] = $stmt->fetch(\PDO::FETCH_ASSOC);
                     break;
             }
             if ($result["success"]) {
@@ -132,8 +112,8 @@ class Helper
     public static function getPaymentMethods()
     {
         if (!self::$paymentmethods) {
-            self::$paymentmethods = array();
-            $r = localAPI("GetPaymentMethods", array());
+            self::$paymentmethods = [];
+            $r = localAPI("GetPaymentMethods", []);
             if ($r["result"]) {
                 foreach ($r["paymentmethods"]["paymentmethod"] as $pm) {
                     self::$paymentmethods[$pm["module"]] = $pm["displayname"];
@@ -151,8 +131,8 @@ class Helper
     public static function getCurrencies()
     {
         if (!self::$currencies) {
-            self::$currencies = array();
-            $results = localAPI('GetCurrencies', array());
+            self::$currencies = [];
+            $results = localAPI('GetCurrencies', []);
             if ($results["result"]=="success") {
                 foreach ($results["currencies"]["currency"] as $idx => $d) {
                     self::$currencies[$d["code"]] = $d;
@@ -184,7 +164,7 @@ class Helper
         $currency = isset($_REQUEST["currency"]) ? $_REQUEST["currency"] : $_SESSION["currency"];
 
         //if customer logged in, set the configured currency.
-        $ca = new WHMCS_ClientArea();
+        $ca = new \WHMCS_ClientArea();
         if ($ca->isLoggedIn()) {
             $r = self::SQLCall("SELECT currency FROM tblclients WHERE id=:id", array(":id" => $ca->getUserID()));
             if ($r["success"]) {
@@ -210,7 +190,7 @@ class Helper
      */
     public static function getClientsDetailsByEmail($email)
     {
-        $r = localAPI('GetClientsDetails', array('email' => $email));
+        $r = localAPI('GetClientsDetails', ['email' => $email]);
         if ($r["result"]=="success") {
             $details = array();
             return ["success" => true, "id" => $r["id"], "currency" => $r["currency"]]; //HM-711
@@ -230,7 +210,7 @@ class Helper
     {
         $phone = preg_replace('/[^0-9 ]/', '', $contact["PHONE"][0]);//only numbers and spaces allowed
         $zip = preg_replace('/[^0-9a-zA-Z ]/', '', $contact["ZIP"][0]);
-        $request = array(
+        $request = [
             "firstname" => $contact["FIRSTNAME"][0],
             "lastname" => $contact["LASTNAME"][0],
             "email" => $contact["EMAIL"][0],
@@ -243,7 +223,7 @@ class Helper
             "password2" => $password,
             "currency" => $currencyid,
             "language" => "english"
-        );
+        ];
         if (!empty($contact["ORGANIZATION"][0])) {
             $request["companyname"] = $contact["ORGANIZATION"][0];
         }
@@ -254,9 +234,9 @@ class Helper
         $customfield = self::SQLCall("SELECT fieldname FROM tblcustomfields WHERE fieldname LIKE '%vat%'");
 
         if ($customfield['success'] && !empty($customfield['result']['fieldname'])) {
-            $customfields = array(
+            $customfields = [
                 $customfield['result']['fieldname'] => $contact["vat_id"][0]
-            );
+            ];
             //Base64 encoded serialized array of custom field values
             $request["customfields"] = base64_encode(serialize($customfields));
         }
@@ -266,7 +246,10 @@ class Helper
         if ($r["result"] == "success") {
             return Helper::getClientsDetailsByEmail($contact["EMAIL"][0]);
         }
-        return ["success" => false, "errormsg" => $r["message"]];
+        return [
+            "success" => false,
+            "errormsg" => $r["message"]
+        ];
     }
 
     /**
@@ -276,10 +259,10 @@ class Helper
      */
     public static function checkDomainExists($domain)
     {
-        $r = localAPI('GetClientsDomains', array(
+        $r = localAPI('GetClientsDomains', [
             'domain' => $domain,
             'limitnum' => 1
-        ));
+        ]);
         if ($r["result"] == "success") {
             return $r["totalresults"] > 0;
         }
@@ -289,7 +272,7 @@ class Helper
     /**
      * Create a domain by given data
      *
-     * @param WHMCS\Domains\Domain $domain domain object
+     * @param \WHMCS\Domains\Domain $domain domain object
      * @param array $apidata StatusDomain PROPERTY data from API
      * @param string $gateway payment gateway
      * @param array $clientdetails client details e.g. id, currency
@@ -356,7 +339,7 @@ class Helper
                 }
             }
             //--- care about extension flags (we could handle this in DomainSync instead)
-            $addflds = new \ISPAPI\AdditionalFields($params["TestMode"] == "on");
+            $addflds = new AdditionalFields($params["TestMode"] == "on");
             $addflds->setDomain($domain->getDomain())->setFieldValuesFromAPI($apidata)->saveToDatabase($r["insertid"]);
         }
         return $r["success"];
@@ -407,58 +390,58 @@ class Helper
     {
         $domainObj = new \WHMCS\Domains\Domain($domain);
         if (!preg_match('/\.(.*)$/i', $domain)) {
-            return array(
+            return [
                 "success" => false,
                 "msgid" => 'domainnameinvaliderror'
-            );
+            ];
         }
         if (Helper::checkDomainExists($domain)) {
-            return array(
+            return [
                 "success" => false,
                 "msgid" => 'alreadyexistingerror'
-            );
+            ];
         }
         
-        $r = Helper::APICall($registrar, array(
+        $r = Ispapi::call([
             "COMMAND" => "StatusDomain",
             "DOMAIN"  => $domain
-        ));
-        if (!($r["CODE"] == 200)) {
-            return array(
+        ]);
+        if ($r["CODE"] != 200) {
+            return [
                 "success" => false,
                 "msgid" => null,
                 "msg" => $r["DESCRIPTION"]
-            );
+            ];
         }
         $registrant = $r["PROPERTY"]["OWNERCONTACT"][0];
         if (!$registrant) {
-            return array(
+            return [
                 "success" => false,
                 "msgid" => "registrantmissingerror"
-            );
+            ];
         }
         if (!isset($contacts[$registrant])) {
-            $r2 = Helper::APICall($registrar, array(
+            $r2 = Ispapi::call([
                 "COMMAND" => "StatusContact",
                 "CONTACT"  => $registrant
-            ));
-            if (!($r2["CODE"] == 200)) {
-                return array(
+            ]);
+            if ($r2["CODE"] != 200) {
+                return [
                     "success" => false,
                     "msgid" => "registrantfetcherror"
-                );
+                ];
             }
             $contacts[$registrant] = $r2["PROPERTY"];
         }
         $contact = $contacts[$registrant];
-        if ((!$contact["EMAIL"][0]) || (preg_match('/null$/i', $contact["EMAIL"][0]))) {
+        if (!$contact["EMAIL"][0] || preg_match('/null$/i', $contact["EMAIL"][0])) {
             $contact["EMAIL"][0] = "info@".$domain;
         }
         if (empty($contact["PHONE"][0])) {
-            return array(
+            return [
                 "success" => false,
                 "msgid" => "registrantcreateerrornophone"
-            );
+            ];
         }
         //vatid (VATID or X-VATID)
         $contact["vat_id"][0] = '';
@@ -474,47 +457,47 @@ class Helper
         if (!$client) {
             $client = Helper::addClient($contact, $currency, $password);
             if (!$client['success']) {
-                return array(
+                return [
                     "success" => false,
                     "msgid" => $client['errormsg']
-                 );
+                ];
             }
         }
         
         // get tld-specific price and addon configuration details
-        $domainprices = localAPI('GetTLDPricing', array(
+        $domainprices = localAPI('GetTLDPricing', [
             'currencyid' => $client["currency"]
-        ));
+        ]);
         if ($domainprices["result"] != "success") {
-            return array(
+            return [
                 "success" => false,
                 "msgid" => "tldrenewalpriceerror"
-            );
+            ];
         }
 
         $tld = $domainObj->getTLD();
         $prices = $domainprices["pricing"][$tld];
 
         // get premium price
-        $premiumpricing = array();
+        $premiumpricing = [];
         if (preg_match("/^PREMIUM_/", $r["PROPERTY"]["SUBCLASS"][0])) {
             if (!(bool) (int) \WHMCS\Config\Setting::getValue("PremiumDomains")) {
-                return array(
+                return [
                     "success" => false,
                     "msgid" => "premiumdomainsinactive" // TODO
-                );
+                ];
             }
             $premiumpricing = call_user_func($registrar."_GetPremiumPrice", array_merge(getregistrarconfigoptions($registrar), [
                 "domain" => $domainObj->getDomain(),
                 "sld" => $domainObj->getSecondLevel(),
                 "tld" => $domainObj->getDotTopLevel(),
-                "type" => array("renew")
+                "type" => ["renew"]
             ]));
             if (!isset($premiumpricing['renew'])) {
-                return array(
+                return [
                     "success" => false,
                     "msgid" => "tldrenewalpriceerror"
-                );
+                ];
             }
             $domainprice = $premiumpricing['transfer'];
             $renewprice = $premiumpricing['renew'];
@@ -531,10 +514,10 @@ class Helper
             $renewprice = (double) format_as_currency($renewprice);
         } else {
             if (!isset($domainprices["pricing"][$tld]['renew']['1'])) {
-                return array(
+                return [
                     "success" => false,
                     "msgid" => "tldrenewalpriceerror"
-                );
+                ];
             }
             $domainprice = $prices['register']['1'];
             $renewprice = $prices['renew']['1'];
@@ -543,15 +526,15 @@ class Helper
 
         $result = Helper::createDomain($domainObj, $r["PROPERTY"], $gateway, $client, $renewprice, $domainprice, $premiumpricing);
         if (!$result) {
-            return array(
+            return [
                 "success" => false,
                 "msgid" => "domaincreateerror"
-            );
+            ];
         }
-        return array(
+        return [
             "success" => true,
             "msgid" => "ok"
-        );
+        ];
     }
 
     public static $stringCharset = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

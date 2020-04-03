@@ -1,10 +1,30 @@
 <?php
 
-namespace ISPAPI;
+namespace WHMCS\Module\Registrar\Ispapi;
 
-include(implode(DIRECTORY_SEPARATOR, [__DIR__, "UserRelationModel.class.php"]));
-include(implode(DIRECTORY_SEPARATOR, [__DIR__, "TldConfigurationModel.class.php"]));
-include(implode(DIRECTORY_SEPARATOR, [__DIR__, "TldPriceModel.class.php"]));
+use \HEXONET\APIClient;
+
+if (defined("WHMCS")) {
+    if (!function_exists("getregistrarconfigoptions")) {
+        require_once implode(DIRECTORY_SEPARATOR, [ROOTDIR, "includes", "registrarfunctions.php"]);
+    }
+}
+
+// ---------------------------------------------------------------
+// PHP-SDK
+// ---------------------------------------------------------------
+$path = implode(DIRECTORY_SEPARATOR, [__DIR__, "sdk", "src", ""]);
+include_once($path . "SocketConfig.php");
+include_once($path . "APIClient.php");
+include_once($path . "Column.php");
+include_once($path . "Logger.php");
+include_once($path . "Record.php");
+include_once($path . "ResponseTemplate.php");
+include_once($path . "Response.php");
+include_once($path . "ResponseParser.php");
+include_once($path . "ResponseTemplateManager.php");
+// ---------------------------------------------------------------
+
 class Ispapi
 {
     public static $tldclassmap = [
@@ -326,13 +346,137 @@ class Ispapi
         "XN--WGBL6A" => ".قطر"
     ];*/
 
-    public static $config = null;
-
     public static $ttl = 3600; // 1h
 
-    public static function init($config)
+    /**
+     * Make an API request using the provided command and return response in Hash Format
+     * @param array $command API command to request
+     * @param array $params common module parameters (optional)
+     * @return array
+     */
+    public static function call($command, $params = null)
     {
-        self::$config = $config;
+        if (!$params) {
+            $params = \getregistrarconfigoptions('ispapi');
+        }
+        $cl = new \HEXONET\APIClient();
+        if ($params["TestMode"] == 1 || $params["TestMode"] == "on") {
+            $cl->useOTESystem();
+        }
+
+        $modules = [];
+        foreach (self::getModuleVersions($params) as $key => $val) {
+            $modules[] = "$key/$val";
+        }
+
+        $cl->setCredentials($params["Username"], html_entity_decode($params["Password"], ENT_QUOTES))
+            ->setReferer($GLOBALS["CONFIG"]["SystemURL"])
+            ->setUserAgent("WHMCS", $GLOBALS["CONFIG"]["Version"], $modules)
+            ->enableDebugMode() // activate logging
+            ->setCustomLogger(new Logger(["module" => "ispapi"]));
+        if (strlen($params["ProxyServer"])) {
+            $cl->setProxy($params["ProxyServer"]);
+        }
+        return ($cl->request($command))->getHash();
+    }
+
+    /**
+     * get new data for environment update
+     * @param array $params common module parameters
+     * @return array
+     */
+    public static function getStatisticsData($params)
+    {
+        return ([
+            "whmcs" => $params["whmcsVersion"],
+            "updated_date" =>  (new \DateTime("now", new \DateTimeZone('UTC')))->format('Y-m-d H:i:s')." (UTC)",
+            "phpversion" => phpversion(),
+            "os" => php_uname("s")
+        ] + self::getModuleVersions($params));
+    }
+
+    /**
+     * Get the version of the registrar module or "N/A" if not found
+     * @param string $registrar the registrar identifier (ispapi/hexonet)
+     * @return string
+     */
+    public static function getRegistrarModuleVersion($registrar)
+    {
+        if (!function_exists($registrar . "_getConfigArray")) {
+            include_once(implode(DIRECTORY_SEPARATOR, [ROOTDIR, "modules", "registrars", $registrar, $registrar . ".php"]));
+        }
+        $const = strtoupper($registrar . "_MODULE_VERSION");
+        if (defined($const)) {
+            return constant($const);
+        }
+        // fallback for ispapi module < v3.0.0
+        $cfgs = call_user_func($registrar . "_getConfigArray");
+        if (isset($cfg["FriendlyName"]) && preg_match("/v([0-9]+\.[0-9]+\.[0-9]+)$/", $cfg["FriendlyName"], $m)) {
+            return $m[1];
+        }
+        return "N/A";
+    }
+
+    /**
+     * get current module versioning list
+     * @return array
+     */
+    public static function getModuleVersions()
+    {
+        static $values = null;
+        if (!is_null($values)) {
+            return $values;
+        }
+
+        $values = [
+            "ispapi" => self::getRegistrarModuleVersion("ispapi")
+        ];
+
+        // get addon module versions
+        global $CONFIG;
+        $activemodules = array_filter(explode(",", $CONFIG["ActiveAddonModules"]));
+        $addon = new \WHMCS\Module\Addon();
+        foreach ($addon->getList() as $module) {
+            if (in_array($module, $activemodules) && preg_match("/^ispapi/i", $module) && !preg_match("/\_addon$/i", $module)) {
+                $d = \WHMCS\Module\Addon\Setting::module($module)->pluck("value", "setting");
+                $values[$module] = $d["version"];
+            }
+        }
+
+        // get server module versions
+        $server = new \WHMCS\Module\Server();
+        foreach ($server->getList() as $module) {
+            if (preg_match("/^ispapi/i", $module)) {
+                $server->load($module);
+                $v = $server->getMetaDataValue("MODULEVersion");
+                $values[$module] = empty($v) ? "old" : $v;
+            }
+        }
+
+        // get widget module versions
+        $widget = new \WHMCS\Module\Widget();
+        foreach ($widget->getList() as $module) {
+            if (preg_match("/^ispapi/i", $module)) {
+                $widget->load($module);
+                $tmp = explode("_", $module);
+                $widgetClass = "\\WHMCS\Module\Widget\\" . ucfirst($tmp[0]) . ucfirst($tmp[1]) . "Widget";
+                $mname=$tmp[0]."widget".$tmp[1];
+                if (class_exists($widgetClass) && defined("$widgetClass::VERSION")) {
+                    $values[$mname] = $widgetClass::VERSION;
+                } else {
+                    $values[$mname] = "n/a";
+                }
+            }
+        }
+
+        return $values;
+    }
+
+    public static function loadPrices($params)
+    {
+        //load exchange rates
+        static $rates = null;
+
         UserRelationModel::createTableIfNotExists();
         TldConfigurationModel::createTableIfNotExists();
         TldPriceModel::createTableIfNotExists();
@@ -343,17 +487,11 @@ class Ispapi
             TldConfigurationModel::truncate();
             TldPriceModel::truncate();
         }
-    }
-
-    public static function loadPrices()
-    {
-        //load exchange rates
-        static $rates = null;
-
+        
         if (is_null($rates)) {
-            $r = ispapi_call([
+            $r = self::call([
                 "COMMAND" => "QueryExchangeRates"
-            ], self::$config);
+            ], $params);
             if ($r["CODE"]!="200") {
                 throw new \Exception(
                     "Could not load currency exchange rates. Ensure to whitelist command `QueryEchangeRates` " .
@@ -370,7 +508,7 @@ class Ispapi
 
         //load user relations into db
         if (!UserRelationModel::first()) {
-            $r = ispapi_call(["COMMAND" => "StatusUser"], self::$config);
+            $r = self::call(["COMMAND" => "StatusUser"], $params);
             if ($r["CODE"] != "200") {
                 return false;
             }
@@ -386,9 +524,9 @@ class Ispapi
         return true;
     }
 
-    public static function getTLDs()
+    public static function getTLDs($params)
     {
-        if (!self::loadPrices()) {
+        if (!self::loadPrices($params)) {
             return [
                'error' => 'Could not get user status from registrar API.'
             ];
@@ -430,7 +568,7 @@ class Ispapi
         return $tld;
     }
 
-    public static function getTLDConfigurations($tldclassmap)
+    public static function getTLDConfigurations($tldclassmap, $params)
     {
         $tlds = array_keys($tldclassmap);
         // filter out TLDs we have already a configuration for
@@ -443,7 +581,7 @@ class Ispapi
                 foreach ($tldgrp as $idx => $tld) {
                     $cmd["DOMAIN"][] = "example" . $tld;
                 }
-                $r = ispapi_call($cmd, self::$config);
+                $r = self::call($cmd, $params);
                 if ($r["CODE"] != "200") {
                     return [
                         "error" => (

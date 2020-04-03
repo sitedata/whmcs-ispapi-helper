@@ -1,6 +1,6 @@
 <?php
 
-namespace ISPAPI;
+namespace WHMCS\Module\Registrar\Ispapi;
 
 class Logger
 {
@@ -23,7 +23,7 @@ class Logger
             // fallback to command name, if we can't identify ispapi method used
             $action = $r->getCommand()["COMMAND"];
 
-            if (!preg_match('/^(Check|Status|Query|Convert)/i', $action)) {
+            if (!preg_match('/^(Check|Status|Query|Convert|SetEnvironment)/i', $action)) {
                 $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT);
                 do {
                     $t = array_shift($trace);

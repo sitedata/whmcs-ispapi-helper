@@ -1,8 +1,6 @@
 <?php
 
-namespace ISPAPI;
-
-include "Country.class.php";
+namespace WHMCS\Module\Registrar\Ispapi;
 
 /**
  * AdditionalFields class
@@ -1042,10 +1040,10 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
         $locale = \Lang::getLanguageLocale();
         $map = [];
         if ($cfg["Options"]=="{CountryCodeMap}") { // reuse WHMCS placeholder as identifier
-            $cfg["Options"] = \ISPAPI\Country::getCountryCodes();
+            $cfg["Options"] = Country::getCountryCodes();
         }
         if ($cfg["Options"] == "{EUCountryCodeMap}") {
-            $cfg["Options"] = \ISPAPI\Country::getEUMemberStatesCountryCodes();
+            $cfg["Options"] = Country::getEUMemberStatesCountryCodes();
         }
         foreach ($cfg["Options"] as &$val) {
             $map[$val] = upperCaseFirstLetter(\Punic\Territory::getName($val, $locale));

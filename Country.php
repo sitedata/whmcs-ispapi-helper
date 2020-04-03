@@ -1,6 +1,6 @@
 <?php
 
-namespace ISPAPI;
+namespace WHMCS\Module\Registrar\Ispapi;
 
 /**
  * AdditionalFields class

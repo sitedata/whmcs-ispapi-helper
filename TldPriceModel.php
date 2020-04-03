@@ -1,5 +1,5 @@
 <?php
-namespace ISPAPI;
+namespace WHMCS\Module\Registrar\Ispapi;
 
 class TldPriceModel extends \Illuminate\Database\Eloquent\Model
 {

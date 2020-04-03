@@ -1,7 +1,7 @@
 <?php
-namespace ISPAPI;
+namespace WHMCS\Module\Registrar\Ispapi;
 
-use ISPAPI\Helper;
+use WHMCS\Module\Registrar\Ispapi\Ispapi;
 
 /**
  * PHP Class which loads the required registrars for the HP Domainchecker module.
@@ -55,17 +55,14 @@ class LoadRegistrars
      */
     private function loadSingleISPAPIRegistrar($registrar)
     {
-        if (isset($registrar)) {
-            include_once(implode(DIRECTORY_SEPARATOR, array(ROOTDIR,"modules","registrars",$registrar,$registrar.".php")));
-            if (function_exists($registrar.'_GetISPAPIModuleVersion')) {
-                //compare version number
-                $version = call_user_func($registrar.'_GetISPAPIModuleVersion');
-                if (version_compare($version, self::REGISTRAR_MIN_VERSION) >= 0) {
-                    //check authentication
-                    $checkAuthentication = Helper::APICall($registrar, array("COMMAND" => "CheckAuthentication"));
-                    if ($checkAuthentication["CODE"] == "200") {
-                        array_push($this->registrars, $registrar);
-                    }
+        if (isset($registrar) && in_array($registrar, ['ispapi', 'hexonet'])) {
+            //compare version number
+            $version = Ispapi::getRegistrarModuleVersion($registrar);
+            if (version_compare($version, self::REGISTRAR_MIN_VERSION) >= 0) {
+                //check authentication
+                $checkAuthentication = Ispapi::call(["COMMAND" => "CheckAuthentication"]);
+                if ($checkAuthentication["CODE"] == "200") {
+                    array_push($this->registrars, $registrar);
                 }
             }
         }
