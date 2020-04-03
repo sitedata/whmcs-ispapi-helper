@@ -9,7 +9,7 @@ class Logger
 
     public function __construct($data = [])
     {
-        $this->additionalData = ["registrar" => "ispapi"] + $data;
+        $this->additionalData = $data;
     }
     /**
      * log given data
@@ -34,7 +34,7 @@ class Logger
 
                 $error = "HTTP communication failed: gergeg curl issue";
                 logModuleCall(
-                    $this->additionalData['registrar'],
+                    $this->additionalData['module'],
                     $action,
                     $r->getCommandPlain() . "\n" . $requestString,
                     ($error?$error."\n\n":"").$r->getPlain()
