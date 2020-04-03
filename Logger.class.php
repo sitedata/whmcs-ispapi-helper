@@ -27,7 +27,7 @@ class Logger
                 $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT);
                 do {
                     $t = array_shift($trace);
-                    if (preg_match("/^ispapi_(.+)$/i", $t['function'], $m)) {
+                    if (preg_match("/^ispapi_(.+)$/i", $t['function'], $m) && $m[1]!=="call") {
                         $action = $m[1];
                     }
                 } while (!empty($trace));
