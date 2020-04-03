@@ -6,9 +6,9 @@ use WHMCS_ClientArea;
 use PDO;
 
 if (defined("ROOTDIR")) {
-    require_once(implode(DIRECTORY_SEPARATOR, array(ROOTDIR,"includes","registrarfunctions.php")));
+    require_once(implode(DIRECTORY_SEPARATOR, [ROOTDIR,"includes","registrarfunctions.php"]));
 }
-require_once("AdditionalFields.class.php");
+require_once(implode(DIRECTORY_SEPARATOR, [__DIR__,"AdditionalFields.class.php"]));
 
 /**
  * PHP Helper Class
