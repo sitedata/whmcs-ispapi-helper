@@ -1357,7 +1357,7 @@ class AdditionalFields extends \WHMCS\Domains\AdditionalFields
             ".bank" => "https://www.register.bank/get-started/",
             ".boats" => "https://get.boats/policies/",
             ".broker" => "https://nic.broker/",
-            ".ca" => "https://" . (self::$isOTE ? "services.test." : "" ) . "cira.ca/agree",
+            ".ca" => "https://". (self::$isOTE ? "api.ca-ote.fury.ca/" : "cira.ca/registrant-" ) ."agreement",
             ".cat" => "http://domini.cat/en/domini/rules-cat-domain",
             ".cfd" => "https://nic.cfd/",
             ".eco" => "https://home.eco/registrars/policies/",
