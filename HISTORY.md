@@ -1,3 +1,15 @@
+# [2.14.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.3...v2.14.0) (2020-04-14)
+
+
+### Bug Fixes
+
+* **CA-verification:** updated .CA verification URL ([638f516](https://github.com/hexonet/whmcs-ispapi-helper/commit/638f51667ddba25f7eaa3ed5439ec44b5bd86368))
+
+
+### Features
+
+* **pricingsync:** extended by redemptionfee/gracefee settings; always convert to default currency ([f447959](https://github.com/hexonet/whmcs-ispapi-helper/commit/f4479599566cc6ff35edb668548a52e251d17d45))
+
 ## [2.13.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.2...v2.13.3) (2020-04-03)
 
 
