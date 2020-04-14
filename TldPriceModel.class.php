@@ -99,10 +99,6 @@ class TldPriceModel extends \Illuminate\Database\Eloquent\Model
             "transfer" => $this->getTransferPrice($minPeriod),
             "redemption" => $this->getRedemptionPrice($minPeriod)
         ];
-        // check if API currency exists in WHMCS
-        if (\WHMCS\Database\Capsule::table("tblcurrencies")->where("code", $this->prices["currency"])->first()) {
-            return array_merge($prices, [ "currency" => $this->prices["currency"] ]);
-        }
         // load WHMCS default currency
         $defaultcurrency = self::getWHMCSDefaultCurrency();
 
@@ -110,7 +106,10 @@ class TldPriceModel extends \Illuminate\Database\Eloquent\Model
         foreach ($prices as $key => $val) {
             $prices[$key] = self::convertCurrency($val, $this->prices["currency"], $defaultcurrency);
         }
-        return array_merge($prices, [ "currency" => $defaultcurrency ]);
+        return array_merge($prices, [
+            "grace" => null,
+            "currency" => $defaultcurrency
+        ]);
     }
 
     public static function convertCurrency($val, $currFrom, $currTo)

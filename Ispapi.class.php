@@ -72,6 +72,7 @@ class Ispapi
         'COMLV' => '.com.lv',
         'COMMG' => '.com.mg',
         'COMMS' => '.com.ms',
+        'COMMT' => '.com.mt',
         'COMMU' => '.com.mu',
         'COMMX' => '.com.mx',
         'COMMY' => '.com.my',

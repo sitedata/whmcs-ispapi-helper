@@ -10,7 +10,7 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
      */
     protected $table = 'ispapi_tbltldconfigurations';
     public $timestamps = false;
-    protected $fillable = ['tld', 'tldclass', 'periods', 'periods', 'periods', 'repository', 'authRequired', 'idprotection'];
+    protected $fillable = ['tld', 'tldclass', 'periods', 'repository', 'authRequired', 'idprotection'];
 
     public static function hasTable()
     {
@@ -49,7 +49,9 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
                 "periods" => json_encode([
                     "registration" => self::formatPeriods($apiresponse["ZONEREGISTRATIONPERIODS"][$idx]),
                     "transfer" => self::formatPeriods($apiresponse["ZONETRANSFERPERIODS"][$idx]),
-                    "renewal" => self::formatPeriods($apiresponse["ZONERENEWALPERIODS"][$idx])
+                    "renewal" => self::formatPeriods($apiresponse["ZONERENEWALPERIODS"][$idx]),
+                    "redemptiondays" => $apiresponse["ZONEDELETIONRESTORABLEPERIOD"][$idx] === "" ? null : (int)$apiresponse["ZONEDELETIONRESTORABLEPERIOD"][$idx],
+                    "gracedays" => null // unsupported
                 ]),
                 "repository" => $apiresponse["REPOSITORY"][$idx],
                 "authRequired" => ($apiresponse["REGISTRYTRANSFERREQUIREAUTHCODE"][$idx] === "YES"),
@@ -104,28 +106,5 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
     public function getPeriodsAttribute($value)
     {
         return json_decode($value, true);
-    }
-
-    public function getMinRegistrationPeriod()
-    {
-        return $this->periods["registration"][0];
-    }
-
-    public function getMaxRegistrationPeriod()
-    {
-        $tmp = $this->periods["registration"];
-        return $tmp[count($tmp) - 1];
-    }
-
-    public function getYearsStep()
-    {
-        $periods = $this->periods["registration"];
-        $pmin = $periods[0];
-        $pnext = $pmin + 1;
-        $idxmax = count($periods) - 1;
-        if ($idxmax > 0) {
-            $pnext = $periods[1];
-        }
-        return $pnext - $pmin;
     }
 }
