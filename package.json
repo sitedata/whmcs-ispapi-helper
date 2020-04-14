@@ -49,7 +49,7 @@
     "semantic-release": "^17.0.4"
   },
   "scripts": {
-    "codeCheck": "phpcs --standard=PSR1,PSR2 -q -n --colors *.php",
-    "codeFix": "phpcbf --standard=PSR1,PSR2 -q *.php"
+    "codeCheck": "phpcs --standard=PSR1,PSR2 -q -n --colors  --ignore=sdk *.php",
+    "codeFix": "phpcbf --standard=PSR1,PSR2 -q  --ignore=sdk *.php"
   }
 }
