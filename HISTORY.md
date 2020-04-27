@@ -1,3 +1,10 @@
+## [2.14.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.14.0...v2.14.1) (2020-04-27)
+
+
+### Bug Fixes
+
+* **namespace:** switch namespace for auto-loading in whmcs ([05eec0a](https://github.com/hexonet/whmcs-ispapi-helper/commit/05eec0ae71cf98501a5ed157cbb43cea6da74f24))
+
 # [2.14.0](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.13.3...v2.14.0) (2020-04-14)
 
 
