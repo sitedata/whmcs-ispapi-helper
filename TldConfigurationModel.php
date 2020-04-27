@@ -32,6 +32,8 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
                 $table->string('repository');
                 $table->boolean('authRequired');
                 $table->boolean('idprotection');
+                $table->charset = "utf8";
+                $table->collation = "utf8_unicode_ci";
             });
         }
     }

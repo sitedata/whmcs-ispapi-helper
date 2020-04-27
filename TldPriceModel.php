@@ -22,14 +22,30 @@ class TldPriceModel extends \Illuminate\Database\Eloquent\Model
 
     public static function createTableIfNotExists()
     {
+        // ALTER TABLE tbladmins MODIFY COLUMN `password` VARCHAR(255) NOT NULL DEFAULT '';
         if (!self::hasTable()) {
             \WHMCS\Database\Capsule::schema()->create('ispapi_tblprices', function ($table) {
                 /** @var \Illuminate\Database\Schema\Blueprint $table */
                 $table->string('tldclass');
                 $table->index('tldclass');
                 $table->unique('tldclass');
-                $table->json('prices')->nullable();
+                // v3.0.2 maria db not supporting type json
+                $table->longText('prices')->nullable();
+                $table->charset = "utf8";
+                $table->collation = "utf8_unicode_ci";
             });
+        } else {
+            // v3.0.2 maria db not supporting type json
+            // method getColumnType not available for use
+            $pdo = \WHMCS\Database\Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+            try {
+                $statement = $pdo->prepare("ALTER TABLE `ispapi_tblprices` MODIFY `prices` LONGTEXT");
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
         }
     }
 

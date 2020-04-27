@@ -37,6 +37,8 @@ class UserRelationModel extends \Illuminate\Database\Eloquent\Model
                 $table->unique('relation_type');
                 $table->index('relation_type');
                 $table->tinyInteger('relation_period')->nullable();
+                $table->charset = "utf8";
+                $table->collation = "utf8_unicode_ci";
             });
         }
     }
