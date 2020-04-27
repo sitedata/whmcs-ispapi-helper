@@ -1,3 +1,10 @@
+## [2.14.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.14.1...v2.14.2) (2020-04-27)
+
+
+### Bug Fixes
+
+* **tld & pricing sync:** support maria db (column type json not supported) ([f0090a1](https://github.com/hexonet/whmcs-ispapi-helper/commit/f0090a105524ca0362ac7f5813c58604fcf78cfd))
+
 ## [2.14.1](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.14.0...v2.14.1) (2020-04-27)
 
 
