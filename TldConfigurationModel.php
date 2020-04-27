@@ -28,13 +28,26 @@ class TldConfigurationModel extends \Illuminate\Database\Eloquent\Model
                 $table->string('tldclass');
                 $table->index('tldclass');
                 $table->unique('tldclass');
-                $table->json('periods')->nullable();
+                // v3.0.3 maria db not supporting type json
+                $table->longText('periods')->nullable();
                 $table->string('repository');
                 $table->boolean('authRequired');
                 $table->boolean('idprotection');
                 $table->charset = "utf8";
                 $table->collation = "utf8_unicode_ci";
             });
+        } else {
+            // v3.0.3 maria db not supporting type json
+            // method getColumnType not available for use
+            $pdo = \WHMCS\Database\Capsule::connection()->getPdo();
+            $pdo->beginTransaction();
+            try {
+                $statement = $pdo->prepare("ALTER TABLE `ispapi_tbltldconfigurations` MODIFY `periods` LONGTEXT");
+                $statement->execute();
+                $pdo->commit();
+            } catch (\Exception $e) {
+                $pdo->rollBack();
+            }
         }
     }
 

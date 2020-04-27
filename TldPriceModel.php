@@ -22,7 +22,6 @@ class TldPriceModel extends \Illuminate\Database\Eloquent\Model
 
     public static function createTableIfNotExists()
     {
-        // ALTER TABLE tbladmins MODIFY COLUMN `password` VARCHAR(255) NOT NULL DEFAULT '';
         if (!self::hasTable()) {
             \WHMCS\Database\Capsule::schema()->create('ispapi_tblprices', function ($table) {
                 /** @var \Illuminate\Database\Schema\Blueprint $table */
