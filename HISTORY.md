@@ -1,3 +1,10 @@
+## [2.14.3](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.14.2...v2.14.3) (2020-04-27)
+
+
+### Bug Fixes
+
+* **tld & pricing sync:** fix tldconfigurationmodel for use in maria db ([1fe2672](https://github.com/hexonet/whmcs-ispapi-helper/commit/1fe2672c1cc211978b6d5114409b8e1889a161c8))
+
 ## [2.14.2](https://github.com/hexonet/whmcs-ispapi-helper/compare/v2.14.1...v2.14.2) (2020-04-27)
 
 
